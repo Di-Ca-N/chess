@@ -148,20 +148,14 @@ class EnPassant(Movement):
     def is_valid(self):
         if not isinstance(self.piece, pieces.Pawn):
             return False
-
         if not isinstance(self.captured_piece, pieces.Pawn):
             return False
-
         if self.captured_piece.color == self.piece.color:
             return False
-
         if not self.previous_move.from_position[1] == self.previous_move.to_position[1]:
             return False
-        print("pre", self.previous_move.to_position[0], self.from_position[0])
         if not self.previous_move.to_position[0] == self.from_position[0]:
             return False
-        print("falha1")
         if not abs(self.previous_move.to_position[1] - self.from_position[1]) == 1:
             return False
-        print("foi")
         return True
