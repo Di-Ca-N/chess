@@ -1,5 +1,5 @@
-from .Piece import Piece
-from .Colors import Colors
+from .piece import Piece
+from .colors import Colors
 
 
 class Pawn(Piece):
@@ -12,10 +12,7 @@ class Pawn(Piece):
 
         trajectory = {}
         if from_col == to_col:
-            limit = 1
-
-            if not self.has_moved:
-                limit = 2
+            limit = 2 if not self.has_moved else 2
 
             if abs(to_row - from_row) <= limit:
                 if self.color == Colors.WHITE:
@@ -31,7 +28,6 @@ class Pawn(Piece):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
-        possible = (to_row - from_row ==
-                    self.color.value and to_col - from_col in {-1, 1})
+        possible = (to_row - from_row == self.color.value and to_col - from_col in {-1, 1})
 
         return possible and target_piece.color != self.color

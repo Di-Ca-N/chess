@@ -1,9 +1,9 @@
-from .Piece import Piece
+from .piece import Piece
 
 
-class Tower(Piece):
+class Rook(Piece):
     def __init__(self, color):
-        super().__init__(color, 'tower')
+        super().__init__(color, 'rook')
 
     def trajectory(self, from_position, to_position):
         from_row, from_col = from_position

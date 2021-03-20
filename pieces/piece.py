@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
-from .Colors import Colors
+from .colors import Colors
 import pygame
 
 

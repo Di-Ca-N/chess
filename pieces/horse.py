@@ -1,5 +1,4 @@
-from .Piece import Piece
-from typing import Tuple
+from .piece import Piece
 
 
 class Horse(Piece):

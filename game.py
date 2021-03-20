@@ -1,8 +1,5 @@
 import pygame
-from os import path
-from collections import defaultdict
-
-from Board import Board
+from board import Board
 
 
 class Game:
@@ -25,6 +22,7 @@ class Game:
 
     def run(self):
         pygame.init()
+        pygame.display.set_caption("Chess Game")
         self.screen = pygame.display.set_mode((512, 512))
 
         while True:
@@ -87,7 +85,7 @@ class Game:
 
     def handle_keyboard(self, event):
         if event.key == ord('u'):
-            self.board.undo()
+            self.board.undo_move()
         if event.key == ord('n'):
             self.board.new_game()
 
