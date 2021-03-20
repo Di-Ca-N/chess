@@ -1,6 +1,9 @@
 import pygame
 from board import Board
 
+PIECE_SPRITE_SIZE = 60
+SQUARE_SIZE = 64
+PIECE_OFFSET = (SQUARE_SIZE - PIECE_SPRITE_SIZE) // 2
 
 class Game:
     background = pygame.image.load("./images/chessboard.png")
@@ -44,15 +47,16 @@ class Game:
 
                 if piece is not None and (x, y) != self.dragging_from:
                     piece_image = piece.get_image()
-                    self.screen.blit(piece_image, (x * 64 + 2, y * 64 + 2))
+                    piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
+                    self.screen.blit(piece_image, piece_position)
 
         if self.dragging:
             x, y = self.dragging_from
             if self.board[y][x] is not None:
                 image = self.board[y][x].get_image()
                 real_blit_position = (
-                    self.mouse_position[0] - 30,
-                    self.mouse_position[1] - 30
+                    self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
+                    self.mouse_position[1] - PIECE_SPRITE_SIZE // 2
                 )
                 self.screen.blit(image, real_blit_position)
         pygame.display.update()
@@ -81,7 +85,7 @@ class Game:
         self.dragging_from = (None, None)
 
     def _get_board_position(self, position):
-        return (position[0] // 64, position[1] // 64)
+        return (position[0] // SQUARE_SIZE, position[1] // SQUARE_SIZE)
 
     def handle_keyboard(self, event):
         if event.key == ord('u'):
