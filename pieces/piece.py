@@ -7,6 +7,7 @@ class Piece(ABC):
         self.color = color
         self.name = name
         self.has_moved = has_moved
+        self.notation = ""
 
     def __str__(self):
         return f"{self.color} {self.name}"

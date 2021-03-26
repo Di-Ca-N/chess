@@ -1,9 +1,10 @@
 from .piece import Piece
 
 
-class Horse(Piece):
+class Knight(Piece):
     def __init__(self, color, has_moved=False):
-        super().__init__(color, 'horse', has_moved)
+        super().__init__(color, 'knight', has_moved)
+        self.notation = "N"
 
     def trajectory(self, from_position, to_position):
         from_row, from_col = from_position

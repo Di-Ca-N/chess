@@ -21,6 +21,11 @@ class Movement:
         self.captured_piece = captured_piece
         self.changes_moved_state = not self.piece.has_moved
 
+        self.notation = self.piece.notation
+        if self.capture:
+            self.notation += "x"
+        self.notation += chr(ord('a') + self.to_position[1]) + str(8 - self.to_position[0])
+
     def do(self):
         self.board.move_piece(
             self.piece,
@@ -95,9 +100,11 @@ class Castling(ComposedMove):
         if king_target_col > king_initial_col:
             rook_initial_row, rook_initial_col = king_target_row, king_target_col + 1
             rook_final_row, rook_final_col = king_target_row, king_target_col - 1
+            self.notation = "O-O"
         else:
             rook_initial_row, rook_initial_col = king_target_row, king_target_col - 2
             rook_final_row, rook_final_col = king_target_row, king_target_col + 1
+            self.notation = "O-O-O"
         
         self.rook = board[rook_initial_row][rook_initial_col]
         self.rook_position = (rook_initial_row, rook_initial_col)
@@ -111,13 +118,16 @@ class Castling(ComposedMove):
     def is_valid(self):
         if self.king is None or self.rook is None:
             return False
-        if self.king.color != self.rook.color:
-            return False
-        if self.king.has_moved or self.rook.has_moved:
-            return False
-        if self.king_position[0] != self.rook_position[0]:
-            return False
-        return True
+        
+        have_same_color = self.king.color == self.rook.color
+        pieces_have_not_moved = not (self.king.has_moved or self.rook.has_moved)
+        are_on_the_same_row = self.king_position[0] == self.rook_position[0]
+
+        return all([
+            have_same_color,
+            pieces_have_not_moved,
+            are_on_the_same_row
+        ])
 
     @staticmethod
     def pre_condition(piece, from_position, to_position):

@@ -1,4 +1,5 @@
-from pieces import piece
+from pieces.bishop import Bishop
+from pieces.knight import Knight
 import pieces
 from moves import Promotion
 import pygame
@@ -33,6 +34,7 @@ class Game:
 
         try:
             while True:
+                [print(record.notation) for record in self.board.history]
                 self.update()
 
                 for event in pygame.event.get():
@@ -125,9 +127,16 @@ class PromotionOverlay:
 
         self.menu = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE * 4), pygame.SRCALPHA)
         self.menu.fill((200, 200, 200, 255))
-        self.menu_items = dict(enumerate(['queen', 'horse', 'rook', 'bishop']))
+        self.menu_items = dict(
+            enumerate((
+                ('queen', pieces.Queen), 
+                ('knight', pieces.Knight),
+                ('rook', pieces.Rook),
+                ('bishop', pieces.Bishop)
+            )
+        ))
 
-        for index, piece_name in self.menu_items.items():
+        for index, (piece_name, _) in self.menu_items.items():
             self.menu.blit(
                 pygame.image.load(f"images/{piece_color.name.lower()}/{piece_name}.png"), 
                 (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index)
@@ -136,8 +145,6 @@ class PromotionOverlay:
     def get(self):
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self.menu, self.menu_cooords)
-
-        options = {'queen': pieces.Queen, 'horse': pieces.Horse, 'rook': pieces.Rook, 'bishop': pieces.Bishop}
 
         while True:
             for event in pygame.event.get():
@@ -148,7 +155,7 @@ class PromotionOverlay:
                     if item_x == self.x:
                         item_y = item_y if self.piece_color == pieces.Colors.WHITE else (item_y + 4) % 4
                         if item_y < 4:
-                            return options[self.menu_items[item_y]]
+                            return self.menu_items[item_y][1]
                             
             pygame.display.update()
 
