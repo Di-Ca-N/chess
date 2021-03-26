@@ -38,7 +38,7 @@ class Board:
     def __getitem__(self, position):
         return self.state[position]
 
-    def move_piece(self, from_position, to_position):
+    def process_move(self, from_position, to_position):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
@@ -52,19 +52,16 @@ class Board:
 
         target_piece = self.state[to_row][to_col]
 
-        movement_done = False
-
         move = process_move(self, piece, from_position, to_position, target_piece)
+        return move
 
-        if move.is_valid():
+    def make_move(self, move):
+        if move is not None and move.is_valid():
             move.do()
             self.history.append(move)
-            movement_done = True
-
-        if movement_done:
             self.change_player()
 
-    def do_move(self, piece, from_position, to_position):
+    def move_piece(self, piece, from_position, to_position):
         from_row, from_col = from_position
         to_row, to_col = to_position
         self.state[from_row][from_col] = None

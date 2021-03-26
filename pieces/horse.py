@@ -2,8 +2,8 @@ from .piece import Piece
 
 
 class Horse(Piece):
-    def __init__(self, color):
-        super().__init__(color, 'horse')
+    def __init__(self, color, has_moved=False):
+        super().__init__(color, 'horse', has_moved)
 
     def trajectory(self, from_position, to_position):
         from_row, from_col = from_position

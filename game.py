@@ -1,3 +1,6 @@
+from pieces import piece
+import pieces
+from moves import Promotion
 import pygame
 from board import Board
 
@@ -28,14 +31,17 @@ class Game:
         pygame.display.set_caption("Chess Game")
         self.screen = pygame.display.set_mode((512, 512))
 
-        while True:
-            self.update()
+        try:
+            while True:
+                self.update()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
 
-                self.handle_event(event)
+                    self.handle_event(event)
+        except pygame.error as e:
+            print(e)
 
     def update(self):
         self.screen.fill((255, 255, 255))
@@ -46,14 +52,14 @@ class Game:
                 piece = self.board[y][x]
 
                 if piece is not None and (x, y) != self.dragging_from:
-                    piece_image = piece.get_image()
+                    piece_image = pygame.image.load(piece.get_image())
                     piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
                     self.screen.blit(piece_image, piece_position)
 
         if self.dragging:
             x, y = self.dragging_from
             if self.board[y][x] is not None:
-                image = self.board[y][x].get_image()
+                image = pygame.image.load(self.board[y][x].get_image())
                 real_blit_position = (
                     self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
                     self.mouse_position[1] - PIECE_SPRITE_SIZE // 2
@@ -75,12 +81,19 @@ class Game:
         self.mouse_position = pygame.mouse.get_pos()
 
     def handle_mouse_up(self, event):
+        if not self.dragging:
+            return
         self.mouse_position = pygame.mouse.get_pos()
 
         old_x, old_y = self.dragging_from
         new_x, new_y = self._get_board_position(self.mouse_position)
-        self.board.move_piece((old_y, old_x), (new_y, new_x))
+        move = self.board.process_move((old_y, old_x), (new_y, new_x))
 
+        if isinstance(move, Promotion):
+            promotes_to = PromotionOverlay(self.screen, move.piece.color, new_x, new_y).get()
+            move.promotes_to = promotes_to
+
+        self.board.make_move(move)
         self.dragging = False
         self.dragging_from = (None, None)
 
@@ -94,6 +107,54 @@ class Game:
             self.board.new_game()
 
 
+class PromotionOverlay:
+    def __init__(self, screen, piece_color, x, y):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.piece_color = piece_color
+
+        if piece_color == pieces.Colors.WHITE:
+            self.menu_cooords = (x * SQUARE_SIZE, y * SQUARE_SIZE)
+        else:
+            self.menu_cooords = (x * SQUARE_SIZE, (y - 3) * SQUARE_SIZE)
+
+        self.overlay = pygame.Surface((512, 512))
+        self.overlay.set_alpha(64)
+        self.overlay.fill((0, 0, 0))
+
+        self.menu = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE * 4), pygame.SRCALPHA)
+        self.menu.fill((200, 200, 200, 255))
+        self.menu_items = dict(enumerate(['queen', 'horse', 'rook', 'bishop']))
+
+        for index, piece_name in self.menu_items.items():
+            self.menu.blit(
+                pygame.image.load(f"images/{piece_color.name.lower()}/{piece_name}.png"), 
+                (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index)
+            )
+
+    def get(self):
+        self.screen.blit(self.overlay, (0, 0))
+        self.screen.blit(self.menu, self.menu_cooords)
+
+        options = {'queen': pieces.Queen, 'horse': pieces.Horse, 'rook': pieces.Rook, 'bishop': pieces.Bishop}
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    item_x, item_y = x // SQUARE_SIZE, y // SQUARE_SIZE
+
+                    if item_x == self.x:
+                        item_y = item_y if self.piece_color == pieces.Colors.WHITE else (item_y + 4) % 4
+                        if item_y < 4:
+                            return options[self.menu_items[item_y]]
+                            
+            pygame.display.update()
+
 if __name__ == "__main__":
     game = Game()
-    game.run()
+    try:
+        game.run()
+    except KeyboardInterrupt:
+        pass

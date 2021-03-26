@@ -1,19 +1,18 @@
 from abc import ABC, abstractmethod
 from .colors import Colors
-import pygame
 
 
 class Piece(ABC):
-    def __init__(self, color: Colors, name: str):
+    def __init__(self, color: Colors, name: str, has_moved: bool = False):
         self.color = color
         self.name = name
-        self.has_moved = False
+        self.has_moved = has_moved
 
     def __str__(self):
         return f"{self.color} {self.name}"
 
     def get_image(self):
-        return pygame.image.load(f'images/{self.color.name.lower()}/{self.name}.png')
+        return f'images/{self.color.name.lower()}/{self.name}.png'
 
     @abstractmethod
     def trajectory(self, from_position, to_position):

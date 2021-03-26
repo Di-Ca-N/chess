@@ -12,7 +12,7 @@ class Pawn(Piece):
 
         trajectory = {}
         if from_col == to_col:
-            limit = 2 if not self.has_moved else 2
+            limit = 2 if not self.has_moved else 1
 
             if abs(to_row - from_row) <= limit:
                 if self.color == Colors.WHITE:
