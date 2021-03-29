@@ -39,8 +39,7 @@ class Movement:
         self.notation = self.piece.notation
         if self.capture:
             self.notation += "x"
-        self.notation += chr(ord('a') +
-                             self.to_position[1]) + str(8 - self.to_position[0])
+        self.notation += chr(ord('a') + self.to_position[1]) + str(8 - self.to_position[0])
 
     def do(self) -> None:
         self.board.move_piece(
@@ -90,9 +89,9 @@ class Movement:
             return self.piece.can_capture(self.captured_piece, self.from_position, self.to_position)
         return can_move_to
 
+
 class ComposedMove(Movement):
-    def __init__(self, moves):
-        self.moves: List[Movement] = moves
+    moves = []
 
     def do(self) -> None:
         for move in self.moves:
@@ -126,32 +125,58 @@ class Castling(ComposedMove):
 
         self.rook = board[rook_initial_row][rook_initial_col]
         self.rook_position = (rook_initial_row, rook_initial_col)
-        final_rook_position = (rook_final_row, rook_final_col)
+        self.final_rook_position = (rook_final_row, rook_final_col)
+        self.target_king_position = target_king_position
 
         self.moves = [
-            Movement(board, self.king, self.king_position,
-                     target_king_position),
-            Movement(board, self.rook, self.rook_position, final_rook_position)
+            Movement(board, self.king, self.king_position, self.target_king_position),
+            Movement(board, self.rook, self.rook_position, self.final_rook_position)
         ]
-
+        
+        super().__init__(board, self.king, self.king_position, target_king_position)
+    
     def is_valid(self) -> bool:
         if self.king is None or self.rook is None:
             return False
 
         have_same_color = self.king.color == self.rook.color
-        pieces_have_not_moved = not (
-            self.king.has_moved or self.rook.has_moved)
+        pieces_have_not_moved = not (self.king.has_moved or self.rook.has_moved)
         are_on_the_same_row = self.king_position[0] == self.rook_position[0]
+        
+        king_start, king_end = self.king_position[1], self.target_king_position[1]
 
+        if king_start > king_end:
+            king_start, king_end = king_end, king_start
+
+        king_path_in_check = False
+
+        for col in range(king_start, king_end + 1):
+            if self.board.verify_check((self.king_position[0], col), self.king.color):
+                king_path_in_check = True
+        
+        no_pieces_blocking = True
+        total_start, total_end = king_start, self.rook_position[1]
+
+        if total_start > total_end:
+            total_start, total_end = total_end, total_start
+        for col in range(total_start + 1, total_end):
+            if self.board[self.king_position[0]][col] is not None:
+                no_pieces_blocking = False
+        
         return all([
             have_same_color,
             pieces_have_not_moved,
-            are_on_the_same_row
+            are_on_the_same_row,
+            not king_path_in_check,
+            no_pieces_blocking,
         ])
 
     @staticmethod
     def pre_condition(piece: Piece, from_position: Tuple[int, int], to_position: Tuple[int, int]) -> bool:
-        return isinstance(piece, pieces.King) and abs(from_position[1] - to_position[1]) == 2
+        king_move = isinstance(piece, pieces.King)
+        two_squares_to_side = abs(from_position[1] - to_position[1]) == 2
+        on_the_same_row = from_position[0] == to_position[0]
+        return all([king_move, two_squares_to_side, on_the_same_row])
 
 
 class EnPassant(Movement):
@@ -186,11 +211,10 @@ class EnPassant(Movement):
         is_a_pawn_move = isinstance(self.piece, pieces.Pawn)
         captured_piece_is_a_pawn = isinstance(self.captured_piece, pieces.Pawn)
         pieces_with_opposite_colors = self.captured_piece.color != self.piece.color
-        captured_pawn_moved_two_squares = abs(
-            self.previous_move.to_position[0] - self.previous_move.from_position[0]) == 2
+        captured_pawn_moved_two_squares = abs(self.previous_move.to_position[0] - self.previous_move.from_position[0]) == 2
         pieces_on_the_same_row = self.previous_move.to_position[0] == self.from_position[0]
-        pieces_on_adjacent_cols = abs(
-            self.previous_move.to_position[1] - self.from_position[1]) == 1
+        pieces_will_end_on_same_col = self.to_position[1] == self.previous_move.from_position[1]
+        pieces_on_adjacent_cols = abs(self.previous_move.to_position[1] - self.from_position[1]) == 1
 
         return all([
             is_a_pawn_move,
@@ -198,6 +222,7 @@ class EnPassant(Movement):
             pieces_with_opposite_colors,
             captured_pawn_moved_two_squares,
             pieces_on_the_same_row,
+            pieces_will_end_on_same_col,
             pieces_on_adjacent_cols
         ])
 

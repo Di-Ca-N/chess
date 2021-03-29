@@ -74,6 +74,7 @@ class Board:
         self.state[to_row][to_col] = piece    
         piece.has_moved = True
 
+        # Keeping track of kings' positions for performance reasons
         if isinstance(piece, King):
             if piece.color == Colors.WHITE:
                 self.white_king_pos = to_position
@@ -93,11 +94,11 @@ class Board:
         else:
             self.player = Colors.WHITE
 
-    def verify_check(self, king_pos, color):
+    def verify_check(self, position, color):
         for row_n, row in enumerate(self.state):
             for col_n, piece in enumerate(row):
                 if piece is not None and piece.color != color:
-                    move = self.process_move((row_n, col_n), king_pos)
+                    move = self.process_move((row_n, col_n), position)
                     if move is not None and move.is_valid():
                         return True
         return False
