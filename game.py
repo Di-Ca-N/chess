@@ -1,9 +1,11 @@
-from pieces.bishop import Bishop
-from pieces.knight import Knight
-import pieces
-from moves import Promotion
+from __future__ import annotations
+
 import pygame
+import pieces
 from board import Board
+from moves import Promotion
+from typing import Type
+
 
 PIECE_SPRITE_SIZE = 60
 SQUARE_SIZE = 64
@@ -34,7 +36,6 @@ class Game:
 
         try:
             while True:
-                [print(record.notation) for record in self.board.history]
                 self.update()
 
                 for event in pygame.event.get():
@@ -142,7 +143,7 @@ class PromotionOverlay:
                 (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index)
             )
 
-    def get(self):
+    def get(self) -> Type[pieces.Piece]:
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self.menu, self.menu_cooords)
 

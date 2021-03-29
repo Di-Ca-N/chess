@@ -6,3 +6,4 @@ from .queen import Queen
 from .pawn import Pawn
 
 from .colors import Colors
+from .piece import Piece
