@@ -27,22 +27,15 @@ class Queen(Piece):
         to_sum = to_row + to_col
 
         if from_dif == to_dif or from_sum == to_sum:
-            if from_row > to_row:
-                row_tep = -1
-            else:
-                row_tep = 1
-
-            if from_col > to_col:
-                col_step = -1
-            else:
-                col_step = 1
+            row_step = -1 if from_row > to_row else 1
+            col_step = -1 if from_col > to_col else 1
 
             current_row, current_col = from_position
 
             trajectory = set()
             while (current_row, current_col) != to_position:
                 trajectory.add((current_row, current_col))
-                current_row += row_tep
+                current_row += row_step
                 current_col += col_step
             trajectory.add(to_position)
 
