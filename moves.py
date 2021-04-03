@@ -1,29 +1,21 @@
-from __future__ import annotations
-
 import pieces
-import typing
-
-from typing import List, Tuple, Union
-
-if typing.TYPE_CHECKING:
-    from board import Board
-    from pieces import Piece
 
 
-def process_move(board: Board, piece: Piece, from_position: Tuple[int, int],
-                 to_position: Tuple[int, int], captured_piece: Piece = None) -> 'Movement':
-    if Castling.pre_condition(piece, from_position, to_position):
+def process_move(board, piece, from_position, to_position, captured_piece=None):
+    if piece is None:
+        return None
+    elif Castling.pre_condition(piece, from_position, to_position):
         return Castling(board, from_position, to_position)
-    if EnPassant.pre_condition(piece, from_position, to_position, captured_piece):
+    elif EnPassant.pre_condition(piece, from_position, to_position, captured_piece):
         return EnPassant(board, piece, from_position, to_position)
-    if Promotion.pre_condition(piece, to_position):
+    elif Promotion.pre_condition(piece, to_position):
         return Promotion(board, piece, from_position, to_position, captured_piece)
-    return Movement(board, piece, from_position, to_position, captured_piece)
+    else:
+        return Movement(board, piece, from_position, to_position, captured_piece)
 
 
 class Movement:
-    def __init__(self, board: Board, piece: Piece, from_position: Tuple[int, int],
-                 to_position: Tuple[int, int], captured_piece: Piece = None):
+    def __init__(self, board, piece, from_position, to_position, captured_piece=None):
         self.board = board
         self.piece = piece
         self.from_position = from_position
@@ -31,24 +23,22 @@ class Movement:
         self.capture = captured_piece is not None
         self.captured_piece = captured_piece
 
-        if piece is None:
-            return
-
         self.changes_moved_state = not self.piece.has_moved
 
         self.notation = self.piece.notation
+
         if self.capture:
             self.notation += "x"
         self.notation += chr(ord('a') + self.to_position[1]) + str(8 - self.to_position[0])
 
-    def do(self) -> None:
+    def do(self):
         self.board.move_piece(
             self.piece,
             self.from_position,
             self.to_position
         )
 
-    def undo(self) -> None:
+    def undo(self):
         self.board.move_piece(
             self.piece,
             self.to_position,
@@ -56,20 +46,16 @@ class Movement:
         )
 
         if self.capture:
-            self.board[self.to_position[0]
-                       ][self.to_position[1]] = self.captured_piece
+            self.board[self.to_position[0]][self.to_position[1]] = self.captured_piece
 
         if self.changes_moved_state:
             self.piece.has_moved = False
 
-    def is_valid(self) -> bool:
-        if self.piece is None:
-            return False
-
+    def is_valid(self):
         movement_not_blocked = True
         exists_trajectory = True
 
-        trajectory = self.piece.trajectory(self.from_position, self.to_position)
+        trajectory = self.piece.trajectory(self.from_position, self.to_position, self.capture)
 
         if not trajectory:
             exists_trajectory = False
@@ -85,29 +71,11 @@ class Movement:
 
         can_move_to = exists_trajectory and movement_not_blocked
 
-        if (can_move_to or isinstance(self.piece, pieces.Pawn)) and self.capture:
-            return self.piece.can_capture(self.captured_piece, self.from_position, self.to_position)
         return can_move_to
 
 
-class ComposedMove(Movement):
-    moves = []
-
-    def do(self) -> None:
-        for move in self.moves:
-            move.do()
-
-    def undo(self) -> None:
-        for move in self.moves[::-1]:
-            move.undo()
-
-    def is_valid(self) -> bool:
-        raise NotImplementedError
-
-
-class Castling(ComposedMove):
-    def __init__(self, board: Board, initial_king_position: Tuple[int, int],
-                 target_king_position: Tuple[int, int]):
+class Castling(Movement):
+    def __init__(self, board, initial_king_position, target_king_position):
         king_initial_row, king_initial_col = initial_king_position
         king_target_row, king_target_col = target_king_position
 
@@ -135,7 +103,15 @@ class Castling(ComposedMove):
         
         super().__init__(board, self.king, self.king_position, target_king_position)
     
-    def is_valid(self) -> bool:
+    def do(self):
+        for move in self.moves:
+            move.do()
+
+    def undo(self):
+        for move in self.moves[::-1]:
+            move.undo()
+    
+    def is_valid(self):
         if self.king is None or self.rook is None:
             return False
 
@@ -172,7 +148,7 @@ class Castling(ComposedMove):
         ])
 
     @staticmethod
-    def pre_condition(piece: Piece, from_position: Tuple[int, int], to_position: Tuple[int, int]) -> bool:
+    def pre_condition(piece, from_position, to_position) -> bool:
         king_move = isinstance(piece, pieces.King)
         two_squares_to_side = abs(from_position[1] - to_position[1]) == 2
         on_the_same_row = from_position[0] == to_position[0]
@@ -180,13 +156,12 @@ class Castling(ComposedMove):
 
 
 class EnPassant(Movement):
-    def __init__(self, board: Board, piece: Piece, from_position: Tuple[int, int],
-                 to_position: Tuple[int, int], captured_piece: Piece = None):
+    def __init__(self, board, piece, from_position, to_position, captured_piece=None):
         super().__init__(board, piece, from_position, to_position, captured_piece)
         self.previous_move = self.board.history[-1] if self.board.history else None
         self.captured_piece = self.previous_move.piece if self.previous_move is not None else None
 
-    def do(self) -> None:
+    def do(self):
         self.board.move_piece(
             self.piece,
             self.from_position,
@@ -195,7 +170,7 @@ class EnPassant(Movement):
         capture_position_row, capture_position_col = self.previous_move.to_position
         self.board[capture_position_row][capture_position_col] = None
 
-    def undo(self) -> None:
+    def undo(self):
         self.board.move_piece(
             self.piece,
             self.to_position,
@@ -204,8 +179,8 @@ class EnPassant(Movement):
         capture_position_row, capture_position_col = self.previous_move.to_position
         self.board[capture_position_row][capture_position_col] = self.captured_piece
 
-    def is_valid(self) -> bool:
-        if self.piece is None or self.captured_piece is None:
+    def is_valid(self):
+        if self.captured_piece is None:
             return False
 
         is_a_pawn_move = isinstance(self.piece, pieces.Pawn)
@@ -227,8 +202,7 @@ class EnPassant(Movement):
         ])
 
     @staticmethod
-    def pre_condition(piece: 'Piece', from_position: 'Tuple[int, int]', to_position: 'Tuple[int, int]',
-                      captured_piece: 'Piece') -> bool:
+    def pre_condition(piece, from_position, to_position, captured_piece):
         return isinstance(piece, pieces.Pawn) and (
             abs(from_position[0] - to_position[0]) == 1 and
             abs(from_position[1] - to_position[1]) == 1
@@ -248,9 +222,7 @@ class Promotion(Movement):
         )
 
     @staticmethod
-    def pre_condition(piece: 'Piece', to_position: 'Tuple[int, int]') -> bool:
-        if piece is None:
-            return False
+    def pre_condition(piece, to_position):
         is_pawn = isinstance(piece, pieces.Pawn)
         last_row = 0 if piece.color == pieces.Colors.WHITE else 7
         going_to_last_row = to_position[0] == last_row

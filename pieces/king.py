@@ -1,15 +1,12 @@
 from .piece import Piece
-import typing
 
-if typing.TYPE_CHECKING:
-    from typing import Tuple, Set
 
 class King(Piece):
     def __init__(self, color, has_moved=False):
         super().__init__(color, 'king', has_moved)
         self.notation = "K"
 
-    def trajectory(self, from_position: 'Tuple[int, int]', to_position: 'Tuple[int, int]') -> 'Set[Tuple[int, int]]':
+    def trajectory(self, from_position, to_position, capture=False):
         from_row, from_col = from_position
         to_row, to_col = to_position
 

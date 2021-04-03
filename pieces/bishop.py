@@ -1,15 +1,12 @@
 from .piece import Piece
-import typing
 
-if typing.TYPE_CHECKING:
-    from typing import Tuple, Set
 
 class Bishop(Piece):
     def __init__(self, color, has_moved=False):
         super().__init__(color, 'bishop', has_moved)
         self.notation = "B"
 
-    def trajectory(self, from_position: 'Tuple[int, int]', to_position: 'Tuple[int, int]') -> 'Set[Tuple[int, int]]':
+    def trajectory(self, from_position, to_position, capture=False):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
@@ -18,6 +15,8 @@ class Bishop(Piece):
 
         from_sum = from_row + from_col
         to_sum = to_row + to_col
+
+        trajectory = set()
 
         if from_dif == to_dif or from_sum == to_sum:
             if from_row > to_row:
@@ -32,12 +31,11 @@ class Bishop(Piece):
 
             current_row, current_col = from_position
 
-            trajectory = set()
+            
             while (current_row, current_col) != to_position:
                 trajectory.add((current_row, current_col))
                 current_row += row_tep
                 current_col += col_step
             trajectory.add(to_position)
 
-            return trajectory
-        return set()
+        return trajectory

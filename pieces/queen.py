@@ -6,7 +6,7 @@ class Queen(Piece):
         super().__init__(color, 'queen', has_moved)
         self.notation = "Q"
 
-    def trajectory(self, from_position, to_position):
+    def trajectory(self, from_position, to_position, capture=False):
         from_row, from_col = from_position
         to_row, to_col = to_position
 

@@ -1,15 +1,13 @@
-from __future__ import annotations
-
 import pygame
 import pieces
 from board import Board
 from moves import Promotion
-from typing import Type
 
 
 PIECE_SPRITE_SIZE = 60
 SQUARE_SIZE = 64
 PIECE_OFFSET = (SQUARE_SIZE - PIECE_SPRITE_SIZE) // 2
+
 
 class Game:
     background = pygame.image.load("./images/chessboard.png")
@@ -92,7 +90,7 @@ class Game:
         new_x, new_y = self._get_board_position(self.mouse_position)
         move = self.board.process_move((old_y, old_x), (new_y, new_x))
 
-        if isinstance(move, Promotion):
+        if isinstance(move, Promotion) and move.is_valid():
             promotes_to = PromotionOverlay(self.screen, move.piece.color, new_x, new_y).get()
             move.promotes_to = promotes_to
 
@@ -106,7 +104,7 @@ class Game:
     def handle_keyboard(self, event):
         if event.key == ord('u'):
             self.board.undo_move()
-        if event.key == ord('n'):
+        elif event.key == ord('n'):
             self.board.new_game()
 
 
@@ -143,7 +141,7 @@ class PromotionOverlay:
                 (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index)
             )
 
-    def get(self) -> Type[pieces.Piece]:
+    def get(self):
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self.menu, self.menu_cooords)
 

@@ -6,7 +6,7 @@ class Rook(Piece):
         super().__init__(color, 'rook', has_moved)
         self.notation = "R"
 
-    def trajectory(self, from_position, to_position):
+    def trajectory(self, from_position, to_position, capture=False):
         from_row, from_col = from_position
         to_row, to_col = to_position
 

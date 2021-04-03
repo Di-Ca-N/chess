@@ -1,9 +1,6 @@
 from pieces import *
-from moves import process_move, Movement, ComposedMove
-from typing import Tuple, Union
+from moves import process_move, Movement
 
-
-Position = Tuple[int, int]
 
 class Board:
     def __init__(self):
@@ -41,10 +38,10 @@ class Board:
         self.white_king_pos = (7, 4)
         self.black_king_pos = (0, 4)
 
-    def __getitem__(self, position: int):
+    def __getitem__(self, position):
         return self.state[position]
 
-    def process_move(self, from_position: Position, to_position: Position):
+    def process_move(self, from_position, to_position):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
@@ -54,9 +51,10 @@ class Board:
         move = process_move(self, piece, from_position, to_position, target_piece)
         return move
 
-    def make_move(self, move: Union[Movement, ComposedMove]):
+    def make_move(self, move: Movement):
         if move is None or not move.is_valid() or move.piece.color != self.player:
             return
+
         move.do()
         self.history.append(move)
 
@@ -66,8 +64,8 @@ class Board:
             self.undo_move(keep_player=True)
         else:
             self.change_player()
-    
-    def move_piece(self, piece: Piece, from_position: Position, to_position: Position):
+
+    def move_piece(self, piece, from_position, to_position):
         from_row, from_col = from_position
         to_row, to_col = to_position
         self.state[from_row][from_col] = None
