@@ -23,7 +23,7 @@ class Movement:
         self.capture = captured_piece is not None
         self.captured_piece = captured_piece
 
-        self.changes_moved_state = not self.piece.has_moved
+        self.changes_moved_state = not self.piece.has_moved if self.piece is not None else True
 
         self.notation = self.piece.notation
 
@@ -46,7 +46,7 @@ class Movement:
         )
 
         if self.capture:
-            self.board[self.to_position[0]][self.to_position[1]] = self.captured_piece
+            self.board.place_piece(self.captured_piece, self.to_position)
 
         if self.changes_moved_state:
             self.piece.has_moved = False
@@ -61,7 +61,7 @@ class Movement:
             exists_trajectory = False
 
         for intermediate_row, intermediate_col in trajectory:
-            intermediary_square = self.board[intermediate_row][intermediate_col]
+            intermediary_square = self.board[intermediate_row, intermediate_col]
 
             piece_exists = intermediary_square is not None
             is_initial_position = (intermediate_row, intermediate_col) == self.from_position
@@ -69,9 +69,13 @@ class Movement:
             if piece_exists and not is_final_position and not is_initial_position:
                 movement_not_blocked = False
 
-        can_move_to = exists_trajectory and movement_not_blocked
-
-        return can_move_to
+        only_capturing_oponnent_piece = not self.capture or self.piece.color != self.captured_piece.color
+        return all([
+            exists_trajectory,
+            movement_not_blocked,
+            len(trajectory) > 1,
+            only_capturing_oponnent_piece
+        ])
 
 
 class Castling(Movement):
@@ -79,7 +83,7 @@ class Castling(Movement):
         king_initial_row, king_initial_col = initial_king_position
         king_target_row, king_target_col = target_king_position
 
-        self.king = board[king_initial_row][king_initial_col]
+        self.king = board[king_initial_row, king_initial_col]
         self.king_position = initial_king_position
 
         if king_target_col > king_initial_col:
@@ -91,7 +95,7 @@ class Castling(Movement):
             rook_final_row, rook_final_col = king_target_row, king_target_col + 1
             self.notation = "O-O-O"
 
-        self.rook = board[rook_initial_row][rook_initial_col]
+        self.rook = board[rook_initial_row, rook_initial_col]
         self.rook_position = (rook_initial_row, rook_initial_col)
         self.final_rook_position = (rook_final_row, rook_final_col)
         self.target_king_position = target_king_position
@@ -136,7 +140,7 @@ class Castling(Movement):
         if total_start > total_end:
             total_start, total_end = total_end, total_start
         for col in range(total_start + 1, total_end):
-            if self.board[self.king_position[0]][col] is not None:
+            if self.board[self.king_position[0], col] is not None:
                 no_pieces_blocking = False
         
         return all([
@@ -167,8 +171,7 @@ class EnPassant(Movement):
             self.from_position,
             self.to_position
         )
-        capture_position_row, capture_position_col = self.previous_move.to_position
-        self.board[capture_position_row][capture_position_col] = None
+        self.board.place_piece(None, self.previous_move.to_position)
 
     def undo(self):
         self.board.move_piece(
@@ -176,8 +179,7 @@ class EnPassant(Movement):
             self.to_position,
             self.from_position
         )
-        capture_position_row, capture_position_col = self.previous_move.to_position
-        self.board[capture_position_row][capture_position_col] = self.captured_piece
+        self.board.place_piece(self.captured_piece, self.previous_move.to_position)
 
     def is_valid(self):
         if self.captured_piece is None:
@@ -216,10 +218,8 @@ class Promotion(Movement):
 
     def do(self) -> None:
         super().do()
-        to_row, to_col = self.to_position
-        self.board[to_row][to_col] = self.promotes_to(
-            color=self.piece.color, has_moved=True
-        )
+        piece = self.promotes_to(color=self.piece.color, has_moved=True)
+        self.board.place_piece(piece, self.to_position)
 
     @staticmethod
     def pre_condition(piece, to_position):

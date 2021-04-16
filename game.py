@@ -50,17 +50,21 @@ class Game:
 
         for x in range(8):
             for y in range(8):
-                piece = self.board[y][x]
+                piece = self.board[y, x]
+                if piece is None:
+                    continue
 
-                if piece is not None and (x, y) != self.dragging_from:
-                    piece_image = pygame.image.load(piece.get_image())
-                    piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
-                    self.screen.blit(piece_image, piece_position)
+                if (x, y) == self.dragging_from:
+                    continue
+
+                piece_image = pygame.image.load(piece.get_image())
+                piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
+                self.screen.blit(piece_image, piece_position)
 
         if self.dragging:
             x, y = self.dragging_from
-            if self.board[y][x] is not None:
-                image = pygame.image.load(self.board[y][x].get_image())
+            if self.board[y, x] is not None:
+                image = pygame.image.load(self.board[y, x].get_image())
                 real_blit_position = (
                     self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
                     self.mouse_position[1] - PIECE_SPRITE_SIZE // 2

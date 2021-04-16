@@ -7,46 +7,46 @@ class Board:
         self.new_game()
 
     def new_game(self):
-        self.state = [[None for _ in range(8)] for _ in range(8)]
+        self.state = {}
         self.player = Colors.WHITE
         self.history = []
 
-        self.state[7][0] = Rook(Colors.WHITE)
-        self.state[7][1] = Knight(Colors.WHITE)
-        self.state[7][2] = Bishop(Colors.WHITE)
-        self.state[7][3] = Queen(Colors.WHITE)
-        self.state[7][4] = King(Colors.WHITE)
-        self.state[7][5] = Bishop(Colors.WHITE)
-        self.state[7][6] = Knight(Colors.WHITE)
-        self.state[7][7] = Rook(Colors.WHITE)
+        self.state[7, 0] = Rook(Colors.WHITE)
+        self.state[7, 1] = Knight(Colors.WHITE)
+        self.state[7, 2] = Bishop(Colors.WHITE)
+        self.state[7, 3] = Queen(Colors.WHITE)
+        self.state[7, 4] = King(Colors.WHITE)
+        self.state[7, 5] = Bishop(Colors.WHITE)
+        self.state[7, 6] = Knight(Colors.WHITE)
+        self.state[7, 7] = Rook(Colors.WHITE)
 
         for i in range(8):
-            self.state[6][i] = Pawn(Colors.WHITE)
+            self.state[6, i] = Pawn(Colors.WHITE)
 
-        self.state[0][0] = Rook(Colors.BLACK)
-        self.state[0][1] = Knight(Colors.BLACK)
-        self.state[0][2] = Bishop(Colors.BLACK)
-        self.state[0][3] = Queen(Colors.BLACK)
-        self.state[0][4] = King(Colors.BLACK)
-        self.state[0][5] = Bishop(Colors.BLACK)
-        self.state[0][6] = Knight(Colors.BLACK)
-        self.state[0][7] = Rook(Colors.BLACK) 
+        self.state[0, 0] = Rook(Colors.BLACK)
+        self.state[0, 1] = Knight(Colors.BLACK)
+        self.state[0, 2] = Bishop(Colors.BLACK)
+        self.state[0, 3] = Queen(Colors.BLACK)
+        self.state[0, 4] = King(Colors.BLACK)
+        self.state[0, 5] = Bishop(Colors.BLACK)
+        self.state[0, 6] = Knight(Colors.BLACK)
+        self.state[0, 7] = Rook(Colors.BLACK) 
        
         for i in range(8):
-            self.state[1][i] = Pawn(Colors.BLACK)
+            self.state[1, i] = Pawn(Colors.BLACK)
         
         self.white_king_pos = (7, 4)
         self.black_king_pos = (0, 4)
 
     def __getitem__(self, position):
-        return self.state[position]
+        return self.state.get(position)
 
     def process_move(self, from_position, to_position):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
-        piece = self.state[from_row][from_col]
-        target_piece = self.state[to_row][to_col]
+        piece = self.state.get((from_row, from_col))
+        target_piece = self.state.get((to_row, to_col))
 
         move = process_move(self, piece, from_position, to_position, target_piece)
         return move
@@ -66,10 +66,8 @@ class Board:
             self.change_player()
 
     def move_piece(self, piece, from_position, to_position):
-        from_row, from_col = from_position
-        to_row, to_col = to_position
-        self.state[from_row][from_col] = None
-        self.state[to_row][to_col] = piece    
+        self.place_piece(None, from_position)
+        self.place_piece(piece, to_position)
         piece.has_moved = True
 
         # Keeping track of kings' positions for performance reasons
@@ -79,12 +77,18 @@ class Board:
             else:
                 self.black_king_pos = to_position
 
+    def place_piece(self, piece, position):
+        row, col = position
+        self.state[row, col] = piece
+
     def undo_move(self, keep_player=False):
-        if self.history:
-            last_move = self.history.pop()
-            last_move.undo()
-            if not keep_player:
-                self.change_player()
+        if not self.history:
+            return
+
+        last_move = self.history.pop()
+        last_move.undo()
+        if not keep_player:
+            self.change_player()
 
     def change_player(self):
         if self.player is Colors.WHITE:
@@ -93,12 +97,12 @@ class Board:
             self.player = Colors.WHITE
 
     def verify_check(self, position, color):
-        for row_n, row in enumerate(self.state):
-            for col_n, piece in enumerate(row):
-                if piece is not None and piece.color != color:
-                    move = self.process_move((row_n, col_n), position)
-                    if move is not None and move.is_valid():
-                        return True
+        for (row_n, col_n), piece in self.state.items():
+            if piece is None or piece.color == color:
+                continue
+            move = self.process_move((row_n, col_n), position)
+            if move is not None and move.is_valid():
+                return True
         return False
 
     def get_king_position(self, player):
