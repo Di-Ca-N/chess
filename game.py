@@ -63,8 +63,9 @@ class Game:
 
         if self.dragging:
             x, y = self.dragging_from
-            if self.board[y, x] is not None:
-                image = pygame.image.load(self.board[y, x].get_image())
+            piece = self.board[y, x]
+            if piece is not None:
+                image = pygame.image.load(piece.get_image())
                 real_blit_position = (
                     self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
                     self.mouse_position[1] - PIECE_SPRITE_SIZE // 2

@@ -70,6 +70,7 @@ class Movement:
                 movement_not_blocked = False
 
         only_capturing_oponnent_piece = not self.capture or self.piece.color != self.captured_piece.color
+
         return all([
             exists_trajectory,
             movement_not_blocked,
@@ -104,9 +105,9 @@ class Castling(Movement):
             Movement(board, self.king, self.king_position, self.target_king_position),
             Movement(board, self.rook, self.rook_position, self.final_rook_position)
         ]
-        
+
         super().__init__(board, self.king, self.king_position, target_king_position)
-    
+
     def do(self):
         for move in self.moves:
             move.do()
@@ -142,7 +143,7 @@ class Castling(Movement):
         for col in range(total_start + 1, total_end):
             if self.board[self.king_position[0], col] is not None:
                 no_pieces_blocking = False
-        
+
         return all([
             have_same_color,
             pieces_have_not_moved,

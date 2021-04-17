@@ -31,10 +31,10 @@ class Board:
         self.state[0, 5] = Bishop(Colors.BLACK)
         self.state[0, 6] = Knight(Colors.BLACK)
         self.state[0, 7] = Rook(Colors.BLACK) 
-       
+
         for i in range(8):
             self.state[1, i] = Pawn(Colors.BLACK)
-        
+
         self.white_king_pos = (7, 4)
         self.black_king_pos = (0, 4)
 
@@ -42,16 +42,13 @@ class Board:
         return self.state.get(position)
 
     def process_move(self, from_position, to_position):
-        from_row, from_col = from_position
-        to_row, to_col = to_position
-
-        piece = self.state.get((from_row, from_col))
-        target_piece = self.state.get((to_row, to_col))
+        piece = self.state.get(from_position)
+        target_piece = self.state.get(to_position)
 
         move = process_move(self, piece, from_position, to_position, target_piece)
         return move
 
-    def make_move(self, move: Movement):
+    def make_move(self, move):
         if move is None or not move.is_valid() or move.piece.color != self.player:
             return
 
@@ -78,8 +75,7 @@ class Board:
                 self.black_king_pos = to_position
 
     def place_piece(self, piece, position):
-        row, col = position
-        self.state[row, col] = piece
+        self.state[position] = piece
 
     def undo_move(self, keep_player=False):
         if not self.history:
@@ -97,10 +93,10 @@ class Board:
             self.player = Colors.WHITE
 
     def verify_check(self, position, color):
-        for (row_n, col_n), piece in self.state.items():
+        for piece_position, piece in self.state.items():
             if piece is None or piece.color == color:
                 continue
-            move = self.process_move((row_n, col_n), position)
+            move = self.process_move(piece_position, position)
             if move is not None and move.is_valid():
                 return True
         return False
