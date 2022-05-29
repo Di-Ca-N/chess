@@ -1,18 +1,14 @@
 import pieces
 
-
 def process_move(board, piece, from_position, to_position, captured_piece=None):
     if piece is None:
         return None
-    elif Castling.pre_condition(piece, from_position, to_position):
-        return Castling(board, from_position, to_position)
-    elif EnPassant.pre_condition(piece, from_position, to_position, captured_piece):
-        return EnPassant(board, piece, from_position, to_position)
-    elif Promotion.pre_condition(piece, to_position):
-        return Promotion(board, piece, from_position, to_position, captured_piece)
-    else:
-        return Movement(board, piece, from_position, to_position, captured_piece)
+    
+    validation_chain = [Castling, EnPassant, Promotion, Movement]
 
+    for movement in validation_chain:
+        if movement.pre_condition(piece, from_position, to_position, captured_piece):
+            return movement(board, piece, from_position, to_position, captured_piece)
 
 class Movement:
     def __init__(self, board, piece, from_position, to_position, captured_piece=None):
@@ -77,6 +73,10 @@ class Movement:
             len(trajectory) > 1,
             only_capturing_oponnent_piece
         ])
+    
+    @staticmethod
+    def pre_condition(piece, from_position, to_position, captured_piece) -> bool:
+        return True
 
 
 class Castling(Movement):
@@ -153,7 +153,7 @@ class Castling(Movement):
         ])
 
     @staticmethod
-    def pre_condition(piece, from_position, to_position) -> bool:
+    def pre_condition(piece, from_position, to_position, captured_piece) -> bool:
         king_move = isinstance(piece, pieces.King)
         two_squares_to_side = abs(from_position[1] - to_position[1]) == 2
         on_the_same_row = from_position[0] == to_position[0]
@@ -223,7 +223,7 @@ class Promotion(Movement):
         self.board.place_piece(piece, self.to_position)
 
     @staticmethod
-    def pre_condition(piece, to_position):
+    def pre_condition(piece, from_position, to_position, captured_piece):
         is_pawn = isinstance(piece, pieces.Pawn)
         last_row = 0 if piece.color == pieces.Colors.WHITE else 7
         going_to_last_row = to_position[0] == last_row
