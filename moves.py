@@ -87,7 +87,7 @@ class EmptyMovement:
         return piece is None
 
 class Castling(Movement):
-    def __init__(self, board, initial_king_position, target_king_position):
+    def __init__(self, board, piece, initial_king_position, target_king_position, captured_piece=None):
         king_initial_row, king_initial_col = initial_king_position
         king_target_row, king_target_col = target_king_position
 
