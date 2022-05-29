@@ -1,5 +1,5 @@
 from pieces import *
-from moves import process_move, Movement
+from moves import process_move
 
 
 class Board:
@@ -50,11 +50,10 @@ class Board:
         piece = self.state.get(from_position)
         target_piece = self.state.get(to_position)
 
-        move = process_move(self, piece, from_position, to_position, target_piece)
-        return move
+        return process_move(self, piece, from_position, to_position, target_piece)
 
     def make_move(self, move):
-        if move is None or not move.is_valid() or move.piece.color != self.player:
+        if not move.is_valid() or move.piece.color != self.player:
             return
 
         move.do()
@@ -98,7 +97,7 @@ class Board:
             self.player = Colors.WHITE
 
     def verify_check(self, position, color):
-        for piece_position, piece in self.state.items():
+        for piece_position, piece in self:
             if piece is None or piece.color == color:
                 continue
             move = self.process_move(piece_position, position)

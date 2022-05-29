@@ -1,10 +1,7 @@
 import pieces
 
-def process_move(board, piece, from_position, to_position, captured_piece=None):
-    if piece is None:
-        return None
-    
-    validation_chain = [Castling, EnPassant, Promotion, Movement]
+def process_move(board, piece, from_position, to_position, captured_piece=None):    
+    validation_chain = [EmptyMovement, Castling, EnPassant, Promotion, Movement]
 
     for movement in validation_chain:
         if movement.pre_condition(piece, from_position, to_position, captured_piece):
@@ -78,6 +75,16 @@ class Movement:
     def pre_condition(piece, from_position, to_position, captured_piece) -> bool:
         return True
 
+class EmptyMovement:
+    def __init__(self, board, piece, from_position, to_position, captured_piece=None):
+        pass
+
+    def is_valid(self):
+        return False
+    
+    @staticmethod
+    def pre_condition(piece, from_position, to_position, captured_piece):
+        return piece is None
 
 class Castling(Movement):
     def __init__(self, board, initial_king_position, target_king_position):
