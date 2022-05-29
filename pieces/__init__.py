@@ -5,5 +5,4 @@ from .king import King
 from .queen import Queen
 from .pawn import Pawn
 
-from .colors import Colors
-from .piece import Piece
+from .piece import Piece, Colors

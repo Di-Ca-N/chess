@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from .colors import Colors
-import typing
+import enum
 
-if typing.TYPE_CHECKING:
-    from typing import Set, Tuple
-
+class Colors(enum.Enum):
+    WHITE = -1
+    BLACK = 1
 
 class Piece(ABC):
     def __init__(self, color, name, has_moved=False):
