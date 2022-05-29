@@ -6,37 +6,28 @@ class Board:
     def __init__(self):
         self.new_game()
 
-    def new_game(self):
+    def new_game(self, state_file="initial_position.txt"):
         self.state = {}
         self.player = Colors.WHITE
         self.history = []
 
-        self.state[7, 0] = Rook(Colors.WHITE)
-        self.state[7, 1] = Knight(Colors.WHITE)
-        self.state[7, 2] = Bishop(Colors.WHITE)
-        self.state[7, 3] = Queen(Colors.WHITE)
-        self.state[7, 4] = King(Colors.WHITE)
-        self.state[7, 5] = Bishop(Colors.WHITE)
-        self.state[7, 6] = Knight(Colors.WHITE)
-        self.state[7, 7] = Rook(Colors.WHITE)
+        self.piece_dict = {'r': Rook, 'n': Knight, 'k': King, 'q': Queen, 'b': Bishop, 'p': Pawn}
 
-        for i in range(8):
-            self.state[6, i] = Pawn(Colors.WHITE)
+        with open(state_file) as state:
+            for r, row in enumerate(state):
+                for c, piece_code in enumerate(row):
+                    piece_class = self.piece_dict.get(piece_code.lower())
+                    if piece_class is None:
+                        continue
+                    piece_color = Colors.WHITE if piece_code.islower() else Colors.BLACK
+                    piece = piece_class(piece_color)
+                    self.state[r, c] = piece_class(piece_color)
 
-        self.state[0, 0] = Rook(Colors.BLACK)
-        self.state[0, 1] = Knight(Colors.BLACK)
-        self.state[0, 2] = Bishop(Colors.BLACK)
-        self.state[0, 3] = Queen(Colors.BLACK)
-        self.state[0, 4] = King(Colors.BLACK)
-        self.state[0, 5] = Bishop(Colors.BLACK)
-        self.state[0, 6] = Knight(Colors.BLACK)
-        self.state[0, 7] = Rook(Colors.BLACK) 
-
-        for i in range(8):
-            self.state[1, i] = Pawn(Colors.BLACK)
-
-        self.white_king_pos = (7, 4)
-        self.black_king_pos = (0, 4)
+                    match piece:
+                        case King(color=Colors.WHITE):
+                            self.white_king_pos = (r, c)
+                        case King(color=Colors.BLACK):
+                            self.black_king_pos = (r, c)
 
     def __getitem__(self, position):
         return self.state.get(position)
