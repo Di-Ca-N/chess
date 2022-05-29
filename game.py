@@ -27,6 +27,12 @@ class Game:
             pygame.KEYUP: self.handle_keyboard,
         }
 
+        self.piece_images = {
+            piece.get_image(): pygame.image.load(piece.get_image()) 
+            for _, piece in self.board 
+            if piece is not None
+        }
+
     def run(self):
         pygame.init()
         pygame.display.set_caption("Chess Game")
@@ -48,18 +54,16 @@ class Game:
         self.screen.fill((255, 255, 255))
         self.screen.blit(self.background, (0, 0))
 
-        for x in range(8):
-            for y in range(8):
-                piece = self.board[y, x]
-                if piece is None:
-                    continue
+        for (y, x), piece in self.board:
+            if piece is None:
+                continue
 
-                if (x, y) == self.dragging_from:
-                    continue
+            if (x, y) == self.dragging_from:
+                continue
 
-                piece_image = pygame.image.load(piece.get_image())
-                piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
-                self.screen.blit(piece_image, piece_position)
+            piece_image = self.piece_images[piece.get_image()]
+            piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
+            self.screen.blit(piece_image, piece_position)
 
         if self.dragging:
             x, y = self.dragging_from

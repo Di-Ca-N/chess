@@ -41,6 +41,11 @@ class Board:
     def __getitem__(self, position):
         return self.state.get(position)
 
+    def __iter__(self):
+        for x in range(8):
+            for y in range(8):
+                yield (y, x), self.state.get((y, x))
+
     def process_move(self, from_position, to_position):
         piece = self.state.get(from_position)
         target_piece = self.state.get(to_position)
