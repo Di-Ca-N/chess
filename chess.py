@@ -2,7 +2,7 @@ from pieces import *
 from moves import process_move
 
 
-class Board:
+class ChessGame:
     def __init__(self):
         self.new_game()
 
@@ -103,5 +103,5 @@ class Board:
 
 if __name__ == "__main__":
     import pprint
-    board = Board()
+    board = ChessGame()
     pprint.pprint(board.state)

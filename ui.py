@@ -1,6 +1,6 @@
 import pygame
 import pieces
-from board import Board
+from chess import ChessGame
 from moves import Promotion
 
 
@@ -9,11 +9,11 @@ SQUARE_SIZE = 64
 PIECE_OFFSET = (SQUARE_SIZE - PIECE_SPRITE_SIZE) // 2
 
 
-class Game:
-    background = pygame.image.load("./images/chessboard.png")
+class GameUI:
+    background = pygame.image.load("./assets/images/chessboard.png")
 
-    def __init__(self):
-        self.board = Board()
+    def __init__(self, game):
+        self.board = game
 
         self.screen = None
         self.dragging = False
@@ -168,8 +168,9 @@ class PromotionOverlay:
             pygame.display.update()
 
 if __name__ == "__main__":
-    game = Game()
+    game = ChessGame()
+    ui = GameUI(game)
     try:
-        game.run()
+        ui.run()
     except KeyboardInterrupt:
         pass

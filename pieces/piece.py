@@ -16,7 +16,7 @@ class Piece(ABC):
         return f"{self.color} {self.name}"
 
     def get_image(self):
-        return f'images/{self.color.name.lower()}/{self.name}.png'
+        return f'assets/images/{self.color.name.lower()}/{self.name}.png'
 
     @abstractmethod
     def trajectory(self, from_position, to_position, capture=False):
