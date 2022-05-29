@@ -1,6 +1,6 @@
 import pygame
 import pieces
-from chess import ChessGame
+from game import ChessGame
 from moves import Promotion
 
 
