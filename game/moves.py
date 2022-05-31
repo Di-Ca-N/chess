@@ -1,4 +1,4 @@
-import pieces
+from . import pieces
 
 def process_move(board, piece, from_position, to_position, captured_piece=None):    
     validation_chain = [EmptyMovement, Castling, EnPassant, Promotion, Movement]

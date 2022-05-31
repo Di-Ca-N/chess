@@ -1,7 +1,6 @@
 import pygame
-import pieces
-from game import ChessGame
-from moves import Promotion
+from game import pieces
+from game.moves import Promotion
 
 
 PIECE_SPRITE_SIZE = 60

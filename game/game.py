@@ -1,12 +1,12 @@
-from pieces import *
-from moves import process_move
+from .pieces import *
+from .moves import process_move
 
 
 class ChessGame:
     def __init__(self):
         self.new_game()
 
-    def new_game(self, state_file="initial_position.txt"):
+    def new_game(self, state_file="assets/initial_position.txt"):
         self.state = {}
         self.player = Colors.WHITE
         self.history = []

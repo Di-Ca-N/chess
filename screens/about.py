@@ -27,7 +27,7 @@ class About:
         self.manager.update(pygame.time.get_ticks() / 1000)
         screen.fill((255, 255, 255))
         self.manager.draw_ui(screen)
-        
+
     def handle_event(self, event):
         self.manager.process_events(event)
 
@@ -37,5 +37,3 @@ class About:
         elif event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element is self.back_button:
                 return 'menu'
-
-            
