@@ -10,6 +10,7 @@ class Rook(Piece):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
+        # Rooks can move to any square on the same row or column
         if from_row == to_row:
             if from_col > to_col:
                 from_col, to_col = to_col, from_col
