@@ -3,8 +3,7 @@ from .piece import Piece
 
 class Bishop(Piece):
     def __init__(self, color, has_moved=False):
-        super().__init__(color, "bishop", has_moved)
-        self.notation = "B"
+        super().__init__(color, "bishop", has_moved, "B")
 
     def trajectory(self, from_position, to_position, capture=False):
         # Bishops can move to all squares which the sum of its row

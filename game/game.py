@@ -23,7 +23,7 @@ class ChessGame:
         """
 
         self.state = {}
-        self.player = Colors.WHITE
+        self.player = Color.WHITE
         self.history = []
 
         self.piece_dict = {
@@ -42,15 +42,15 @@ class ChessGame:
                     piece_class = self.piece_dict.get(piece_code.lower())
                     if piece_class is None:
                         continue
-                    piece_color = Colors.WHITE if piece_code.islower() else Colors.BLACK
+                    piece_color = Color.WHITE if piece_code.islower() else Color.BLACK
                     piece = piece_class(piece_color)
                     self.state[r, c] = piece_class(piece_color)
 
                     # Save king positions to allow for efficient detection of checks
                     match piece:
-                        case King(color=Colors.WHITE):
+                        case King(color=Color.WHITE):
                             self.white_king_pos = (r, c)
-                        case King(color=Colors.BLACK):
+                        case King(color=Color.BLACK):
                             self.black_king_pos = (r, c)
 
     def __getitem__(self, position):
@@ -135,7 +135,7 @@ class ChessGame:
 
         # Keeping track of kings' positions for performance reasons
         if isinstance(piece, King):
-            if piece.color == Colors.WHITE:
+            if piece.color == Color.WHITE:
                 self.white_king_pos = to_position
             else:
                 self.black_king_pos = to_position
@@ -146,10 +146,10 @@ class ChessGame:
     def _change_player(self):
         """Swap the current player"""
 
-        if self.player is Colors.WHITE:
-            self.player = Colors.BLACK
+        if self.player is Color.WHITE:
+            self.player = Color.BLACK
         else:
-            self.player = Colors.WHITE
+            self.player = Color.WHITE
 
     def verify_check(self, position, color):
         """Check if the a position is being attacked by the opponent
@@ -174,13 +174,6 @@ class ChessGame:
         Arguments:
             player (Colors): Color of the king
         """
-        if player == Colors.WHITE:
+        if player == Color.WHITE:
             return self.white_king_pos
         return self.black_king_pos
-
-
-if __name__ == "__main__":
-    import pprint
-
-    board = ChessGame()
-    pprint.pprint(board.state)

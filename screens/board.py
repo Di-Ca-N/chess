@@ -14,20 +14,17 @@ class Board:
     def __init__(self, game):
         self.board = game
 
-        self.screen = None
         self.dragging = False
         self.dragging_from = (None, None)
-        self.mouse_position = (0, 0)
 
         self.handlers = {
             pygame.MOUSEBUTTONDOWN: self.handle_mouse_down,
-            pygame.MOUSEMOTION: self.handle_mouse_move,
             pygame.MOUSEBUTTONUP: self.handle_mouse_up,
             pygame.KEYUP: self.handle_keyboard,
         }
 
         self.piece_images = {
-            piece.get_image(): pygame.image.load(piece.get_image())
+            piece.get_image_path(): pygame.image.load(piece.get_image_path())
             for _, piece in self.board
             if piece is not None
         }
@@ -40,10 +37,10 @@ class Board:
             if piece is None:
                 continue
 
-            if (x, y) == self.dragging_from:
+            if (y, x) == self.dragging_from:
                 continue
 
-            piece_image = self.piece_images[piece.get_image()]
+            piece_image = self.piece_images[piece.get_image_path()]
             piece_position = (
                 x * SQUARE_SIZE + PIECE_OFFSET,
                 y * SQUARE_SIZE + PIECE_OFFSET,
@@ -51,13 +48,13 @@ class Board:
             surface.blit(piece_image, piece_position)
 
         if self.dragging:
-            x, y = self.dragging_from
-            piece = self.board[y, x]
+            piece = self.board[self.dragging_from]
             if piece is not None:
-                image = pygame.image.load(piece.get_image())
+                image = self.piece_images[piece.get_image_path()]
+                mouse_position = pygame.mouse.get_pos()
                 real_blit_position = (
-                    self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
-                    self.mouse_position[1] - PIECE_SPRITE_SIZE // 2,
+                    mouse_position[0] - PIECE_SPRITE_SIZE // 2,
+                    mouse_position[1] - PIECE_SPRITE_SIZE // 2,
                 )
                 surface.blit(image, real_blit_position)
 
@@ -67,49 +64,46 @@ class Board:
             return handler(event)
 
     def handle_mouse_down(self, event):
-        self.mouse_position = pygame.mouse.get_pos()
         self.dragging = True
-        self.dragging_from = self._get_board_position(self.mouse_position)
-
-    def handle_mouse_move(self, event):
-        self.mouse_position = pygame.mouse.get_pos()
+        self.dragging_from = self.get_hovered_square()
 
     def handle_mouse_up(self, event):
         if not self.dragging:
             return
-        self.mouse_position = pygame.mouse.get_pos()
 
-        old_x, old_y = self.dragging_from
-        new_x, new_y = self._get_board_position(self.mouse_position)
-        move = self.board.process_move((old_y, old_x), (new_y, new_x))
+        target_position = self.get_hovered_square()
+        move = self.board.process_move(self.dragging_from, target_position)
 
         if isinstance(move, Promotion) and move.is_valid():
-            promotes_to = PromotionOverlay(move.piece.color, new_x, new_y).get()
+            promotes_to = PromotionOverlay(move.piece.color, *target_position).get()
             move.promotes_to = promotes_to
 
         self.board.make_move(move)
         self.dragging = False
         self.dragging_from = (None, None)
 
-    def _get_board_position(self, position):
-        return (position[0] // SQUARE_SIZE, position[1] // SQUARE_SIZE)
+    def get_hovered_square(self):
+        position = pygame.mouse.get_pos()
+        return (position[1] // SQUARE_SIZE, position[0] // SQUARE_SIZE)
 
     def handle_keyboard(self, event):
-        if event.key == ord("u"):
-            self.board.undo_move()
-        elif event.key == ord("n"):
-            self.board.new_game()
-        elif event.key == pygame.K_ESCAPE:
-            return "menu"
+        match event.key:
+            case ord("u"):
+                self.board.undo_move()
+            case ord("n"):
+                self.board.new_game()
+            case pygame.K_ESCAPE:
+                return "menu"
 
 
 class PromotionOverlay:
-    def __init__(self, piece_color, x, y):
+    def __init__(self, piece_color, position):
+        y, x = position
         self.x = x
         self.y = y
         self.piece_color = piece_color
 
-        if piece_color == pieces.Colors.WHITE:
+        if piece_color == pieces.Color.WHITE:
             self.menu_cooords = (x * SQUARE_SIZE, y * SQUARE_SIZE)
         else:
             self.menu_cooords = (x * SQUARE_SIZE, (y - 3) * SQUARE_SIZE)
@@ -153,7 +147,7 @@ class PromotionOverlay:
                     if item_x == self.x:
                         item_y = (
                             item_y
-                            if self.piece_color == pieces.Colors.WHITE
+                            if self.piece_color == pieces.Color.WHITE
                             else (item_y + 4) % 4
                         )
                         if item_y < 4:

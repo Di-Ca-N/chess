@@ -308,7 +308,7 @@ class Promotion(Movement):
     @staticmethod
     def pre_condition(piece, from_position, to_position, captured_piece):
         is_pawn = isinstance(piece, pieces.Pawn)
-        last_row = 0 if piece.color == pieces.Colors.WHITE else 7
+        last_row = 0 if piece.color == pieces.Color.WHITE else 7
         going_to_last_row = to_position[0] == last_row
 
         return is_pawn and going_to_last_row

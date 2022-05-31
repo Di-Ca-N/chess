@@ -1,10 +1,9 @@
-from .piece import Piece, Colors
+from .piece import Piece, Color
 
 
 class Pawn(Piece):
-    def __init__(self, color):
-        super().__init__(color, "pawn")
-        self.notation = ""
+    def __init__(self, color, has_moved=False):
+        super().__init__(color, "pawn", has_moved, "")
 
     def trajectory(self, from_position, to_position, capture=False):
         from_row, from_col = from_position
@@ -17,7 +16,7 @@ class Pawn(Piece):
                 limit = 2 if not self.has_moved else 1
 
                 if abs(to_row - from_row) <= limit:
-                    if self.color == Colors.WHITE:
+                    if self.color == Color.WHITE:
                         trajectory = {
                             (x, from_col) for x in range(to_row, from_row + 1)
                         }
