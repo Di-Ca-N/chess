@@ -3,7 +3,7 @@ from .piece import Piece
 
 class Queen(Piece):
     def __init__(self, color, has_moved=False):
-        super().__init__(color, 'queen', has_moved)
+        super().__init__(color, "queen", has_moved)
         self.notation = "Q"
 
     def trajectory(self, from_position, to_position, capture=False):

@@ -5,17 +5,17 @@ import pygame_gui
 class About:
     def __init__(self):
         window = pygame.display.get_surface()
-        
+
         self.manager = pygame_gui.UIManager(window.get_size(), "assets/theme.json")
 
         self.text = pygame_gui.elements.UITextBox(
             "<font size=7>About</font><br>"
             "<p>This project was developed as an exercise of Design Patterns and SOLID principles.</p>"
-            "<p>It is a simple game of chess. To undo a movement, just press 'u'." 
+            "<p>It is a simple game of chess. To undo a movement, just press 'u'."
             "To start a new game, press 'n'. To go back to menu, press 'ESC'.</p>",
             relative_rect=pygame.Rect((50, 50), (400, 300)),
             manager=self.manager,
-            wrap_to_height=True
+            wrap_to_height=True,
         )
         self.back_button = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((50, 300), (200, 50)),
@@ -33,7 +33,7 @@ class About:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                return 'menu'
+                return "menu"
         elif event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element is self.back_button:
-                return 'menu'
+                return "menu"

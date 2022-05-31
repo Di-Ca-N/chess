@@ -14,14 +14,14 @@ class MainUI:
 
         self.game = game
         self.active_screen = Menu()
-        
+
         self.running = True
 
         self.transitions = {
-            'new_game': self.to_new_game,
-            'about': self.to_about,
-            'menu': self.to_menu,
-            'exit': self.exit,
+            "new_game": self.to_new_game,
+            "about": self.to_about,
+            "menu": self.to_menu,
+            "exit": self.exit,
         }
 
     def run(self):
@@ -47,9 +47,9 @@ class MainUI:
 
     def to_about(self):
         self.active_screen = About()
-    
+
     def to_menu(self):
         self.active_screen = Menu()
-    
+
     def exit(self):
         self.running = False

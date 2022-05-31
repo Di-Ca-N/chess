@@ -27,8 +27,8 @@ class Board:
         }
 
         self.piece_images = {
-            piece.get_image(): pygame.image.load(piece.get_image()) 
-            for _, piece in self.board 
+            piece.get_image(): pygame.image.load(piece.get_image())
+            for _, piece in self.board
             if piece is not None
         }
 
@@ -44,7 +44,10 @@ class Board:
                 continue
 
             piece_image = self.piece_images[piece.get_image()]
-            piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
+            piece_position = (
+                x * SQUARE_SIZE + PIECE_OFFSET,
+                y * SQUARE_SIZE + PIECE_OFFSET,
+            )
             surface.blit(piece_image, piece_position)
 
         if self.dragging:
@@ -54,7 +57,7 @@ class Board:
                 image = pygame.image.load(piece.get_image())
                 real_blit_position = (
                     self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
-                    self.mouse_position[1] - PIECE_SPRITE_SIZE // 2
+                    self.mouse_position[1] - PIECE_SPRITE_SIZE // 2,
                 )
                 surface.blit(image, real_blit_position)
 
@@ -92,9 +95,9 @@ class Board:
         return (position[0] // SQUARE_SIZE, position[1] // SQUARE_SIZE)
 
     def handle_keyboard(self, event):
-        if event.key == ord('u'):
+        if event.key == ord("u"):
             self.board.undo_move()
-        elif event.key == ord('n'):
+        elif event.key == ord("n"):
             self.board.new_game()
         elif event.key == pygame.K_ESCAPE:
             return "menu"
@@ -118,18 +121,22 @@ class PromotionOverlay:
         self.menu = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE * 4), pygame.SRCALPHA)
         self.menu.fill((200, 200, 200, 255))
         self.menu_items = dict(
-            enumerate((
-                ('queen', pieces.Queen), 
-                ('knight', pieces.Knight),
-                ('rook', pieces.Rook),
-                ('bishop', pieces.Bishop)
+            enumerate(
+                (
+                    ("queen", pieces.Queen),
+                    ("knight", pieces.Knight),
+                    ("rook", pieces.Rook),
+                    ("bishop", pieces.Bishop),
+                )
             )
-        ))
+        )
 
         for index, (piece_name, _) in self.menu_items.items():
             self.menu.blit(
-                pygame.image.load(f"assets/images/{piece_color.name.lower()}/{piece_name}.png"), 
-                (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index)
+                pygame.image.load(
+                    f"assets/images/{piece_color.name.lower()}/{piece_name}.png"
+                ),
+                (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index),
             )
 
     def get(self):
@@ -144,8 +151,12 @@ class PromotionOverlay:
                     item_x, item_y = x // SQUARE_SIZE, y // SQUARE_SIZE
 
                     if item_x == self.x:
-                        item_y = item_y if self.piece_color == pieces.Colors.WHITE else (item_y + 4) % 4
+                        item_y = (
+                            item_y
+                            if self.piece_color == pieces.Colors.WHITE
+                            else (item_y + 4) % 4
+                        )
                         if item_y < 4:
                             return self.menu_items[item_y][1]
-                            
+
             pygame.display.update()
