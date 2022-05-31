@@ -19,8 +19,13 @@ This project is meant to be an exercise of SOLID and Design Patterns. It is impo
     - `n`: Start a new game
 
 ## Project Structure
-- `pieces/`: Implementations for each chess piece
-- `board.py`: Implementation of the chess board data structure
-- `moves.py`: Implementation of movements logic
-- `game.py`: Presentation logic, using pygame library.
-- `images/`: Contains image assets for the game (i.e. pieces and chess board)
+- `game/`: Core game files and logic
+    - `pieces/`: Implementations of the basic movement of each chess piece
+    - `game.py`: Game core interactions
+    - `moves.py`: Abstraction of the movement logic using the Command pattern
+- `screens/`: Presentation layer
+    - `main.py`: Main presentation component
+    - `menu.py`: Main Menu screen
+    - `board.py`: Chess board screen, draws the game state
+    - `about.py`: About screen
+- `assets/`: All the game assets, like image files and themes
