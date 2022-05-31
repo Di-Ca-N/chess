@@ -9,7 +9,7 @@ SQUARE_SIZE = 64
 PIECE_OFFSET = (SQUARE_SIZE - PIECE_SPRITE_SIZE) // 2
 
 
-class BoardUI:
+class Board:
     background = pygame.image.load("./assets/images/chessboard.png")
 
     def __init__(self, game):
@@ -32,23 +32,6 @@ class BoardUI:
             for _, piece in self.board 
             if piece is not None
         }
-
-    def run(self):
-        pygame.init()
-        pygame.display.set_caption("Chess Game")
-        self.screen = pygame.display.set_mode((512, 512))
-
-        try:
-            while True:
-                self.update()
-
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-
-                    self.handle_event(event)
-        except pygame.error as e:
-            print(e)
 
     def update(self, surface):
         surface.fill((255, 255, 255))
@@ -167,11 +150,3 @@ class PromotionOverlay:
                             return self.menu_items[item_y][1]
                             
             pygame.display.update()
-
-if __name__ == "__main__":
-    game = ChessGame()
-    ui = BoardUI(game)
-    try:
-        ui.run()
-    except KeyboardInterrupt:
-        pass

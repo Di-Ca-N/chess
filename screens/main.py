@@ -1,8 +1,9 @@
 import pygame
 
-from screens.menu import Menu
+from screens.about import About
 
-from .board import BoardUI
+from .menu import Menu
+from .board import Board
 
 
 class MainUI:
@@ -12,38 +13,43 @@ class MainUI:
         self.window = pygame.display.set_mode((512, 512))
 
         self.game = game
-        self.menu = Menu()
-        self.game_ui = BoardUI(game)
+        self.active_screen = Menu()
+        
+        self.running = True
 
-        self.active_screen = self.menu
-    
+        self.transitions = {
+            'new_game': self.to_new_game,
+            'about': self.to_about,
+            'menu': self.to_menu,
+            'exit': self.exit,
+        }
+
     def run(self):
-        try:
-            while True:
-                self.active_screen.update(self.window)
+        while self.running:
+            self.active_screen.update(self.window)
 
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                    transition = self.active_screen.handle_event(event)
-                    if transition is not None:
-                        if transition == 'new_game':
-                            self.to_new_game()
-                        elif transition == 'about':
-                            self.to_about()
-                        elif transition == 'menu':
-                            self.to_menu()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                transition = self.active_screen.handle_event(event)
+                transition_function = self.transitions.get(transition)
 
-                pygame.display.update()
-        except pygame.error as e:
-            print(e)
+                if transition_function is not None:
+                    transition_function()
+
+            pygame.display.update()
+
+        pygame.quit()
 
     def to_new_game(self):
         self.game.new_game()
-        self.active_screen = self.game_ui
+        self.active_screen = Board(self.game)
 
     def to_about(self):
-        print("About...")
+        self.active_screen = About()
     
     def to_menu(self):
-        self.active_screen = self.menu
+        self.active_screen = Menu()
+    
+    def exit(self):
+        self.running = False
