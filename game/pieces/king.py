@@ -10,6 +10,7 @@ class King(Piece):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
+        # Kings can move to any adjacent square
         row_dif = abs(from_row - to_row)
         col_dif = abs(from_col - to_col)
 

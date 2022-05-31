@@ -10,6 +10,7 @@ class Queen(Piece):
         from_row, from_col = from_position
         to_row, to_col = to_position
 
+        # Queens can move to any square on the same row or column (like Rooks)
         if from_row == to_row:
             if from_col > to_col:
                 from_col, to_col = to_col, from_col
@@ -20,6 +21,7 @@ class Queen(Piece):
                 from_row, to_row = to_row, from_row
             return {(x, from_col) for x in range(from_row, to_row + 1)}
 
+        # And also in diagonals (like bishops)
         from_dif = from_row - from_col
         to_dif = to_row - to_col
 

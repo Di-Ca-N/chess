@@ -7,6 +7,9 @@ class Bishop(Piece):
         self.notation = "B"
 
     def trajectory(self, from_position, to_position, capture=False):
+        # Bishops can move to all squares which the sum of its row 
+        # and col (or the difference between them) is the same of the
+        # current position
         from_row, from_col = from_position
         to_row, to_col = to_position
 
