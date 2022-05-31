@@ -9,7 +9,7 @@ SQUARE_SIZE = 64
 PIECE_OFFSET = (SQUARE_SIZE - PIECE_SPRITE_SIZE) // 2
 
 
-class GameUI:
+class BoardUI:
     background = pygame.image.load("./assets/images/chessboard.png")
 
     def __init__(self, game):
@@ -50,9 +50,9 @@ class GameUI:
         except pygame.error as e:
             print(e)
 
-    def update(self):
-        self.screen.fill((255, 255, 255))
-        self.screen.blit(self.background, (0, 0))
+    def update(self, surface):
+        surface.fill((255, 255, 255))
+        surface.blit(self.background, (0, 0))
 
         for (y, x), piece in self.board:
             if piece is None:
@@ -63,7 +63,7 @@ class GameUI:
 
             piece_image = self.piece_images[piece.get_image()]
             piece_position = (x * SQUARE_SIZE + PIECE_OFFSET, y * SQUARE_SIZE + PIECE_OFFSET)
-            self.screen.blit(piece_image, piece_position)
+            surface.blit(piece_image, piece_position)
 
         if self.dragging:
             x, y = self.dragging_from
@@ -74,13 +74,12 @@ class GameUI:
                     self.mouse_position[0] - PIECE_SPRITE_SIZE // 2,
                     self.mouse_position[1] - PIECE_SPRITE_SIZE // 2
                 )
-                self.screen.blit(image, real_blit_position)
-        pygame.display.update()
+                surface.blit(image, real_blit_position)
 
     def handle_event(self, event):
         handler = self.handlers.get(event.type)
         if handler is not None:
-            handler(event)
+            return handler(event)
 
     def handle_mouse_down(self, event):
         self.mouse_position = pygame.mouse.get_pos()
@@ -100,7 +99,7 @@ class GameUI:
         move = self.board.process_move((old_y, old_x), (new_y, new_x))
 
         if isinstance(move, Promotion) and move.is_valid():
-            promotes_to = PromotionOverlay(self.screen, move.piece.color, new_x, new_y).get()
+            promotes_to = PromotionOverlay(move.piece.color, new_x, new_y).get()
             move.promotes_to = promotes_to
 
         self.board.make_move(move)
@@ -115,11 +114,12 @@ class GameUI:
             self.board.undo_move()
         elif event.key == ord('n'):
             self.board.new_game()
+        elif event.key == pygame.K_ESCAPE:
+            return "menu"
 
 
 class PromotionOverlay:
-    def __init__(self, screen, piece_color, x, y):
-        self.screen = screen
+    def __init__(self, piece_color, x, y):
         self.x = x
         self.y = y
         self.piece_color = piece_color
@@ -146,13 +146,14 @@ class PromotionOverlay:
 
         for index, (piece_name, _) in self.menu_items.items():
             self.menu.blit(
-                pygame.image.load(f"images/{piece_color.name.lower()}/{piece_name}.png"), 
+                pygame.image.load(f"assets/images/{piece_color.name.lower()}/{piece_name}.png"), 
                 (PIECE_OFFSET, PIECE_OFFSET + SQUARE_SIZE * index)
             )
 
     def get(self):
-        self.screen.blit(self.overlay, (0, 0))
-        self.screen.blit(self.menu, self.menu_cooords)
+        screen = pygame.display.get_surface()
+        screen.blit(self.overlay, (0, 0))
+        screen.blit(self.menu, self.menu_cooords)
 
         while True:
             for event in pygame.event.get():
@@ -169,7 +170,7 @@ class PromotionOverlay:
 
 if __name__ == "__main__":
     game = ChessGame()
-    ui = GameUI(game)
+    ui = BoardUI(game)
     try:
         ui.run()
     except KeyboardInterrupt:
