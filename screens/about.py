@@ -1,6 +1,8 @@
 import pygame
 import pygame_gui
 
+from screens.screen_transition import ScreenTransition
+
 
 class About:
     def __init__(self):
@@ -33,7 +35,7 @@ class About:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                return "menu"
+                return ScreenTransition("about", "menu")
         elif event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element is self.back_button:
-                return "menu"
+                return ScreenTransition("about", "menu")

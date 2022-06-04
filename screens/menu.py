@@ -1,6 +1,8 @@
 import pygame
 import pygame_gui
 
+from screens.screen_transition import ScreenTransition
+
 
 class Menu:
     def __init__(self):
@@ -45,8 +47,8 @@ class Menu:
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element is self.new_game_button:
-                return "new_game"
+                return ScreenTransition("menu", "new_game")
             elif event.ui_element is self.about_button:
-                return "about"
+                return ScreenTransition("menu", "about")
             elif event.ui_element is self.exit_button:
-                return "exit"
+                return ScreenTransition("menu", "exit")

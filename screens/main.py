@@ -32,24 +32,25 @@ class MainUI:
                 if event.type == pygame.QUIT:
                     self.running = False
                 transition = self.active_screen.handle_event(event)
-                transition_function = self.transitions.get(transition)
+                if transition is not None:
+                    transition_function = self.transitions.get(transition.to_state)
 
-                if transition_function is not None:
-                    transition_function()
+                    if transition_function is not None:
+                        transition_function(transition)
 
             pygame.display.update()
 
         pygame.quit()
 
-    def to_new_game(self):
+    def to_new_game(self, transition=None):
         self.game.new_game()
         self.active_screen = Board(self.game)
 
-    def to_about(self):
+    def to_about(self, transition=None):
         self.active_screen = About()
 
-    def to_menu(self):
+    def to_menu(self, transition=None):
         self.active_screen = Menu()
 
-    def exit(self):
+    def exit(self, transition=None):
         self.running = False

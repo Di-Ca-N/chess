@@ -2,6 +2,7 @@ import pygame
 from game import pieces
 from game.moves import Promotion
 
+from .screen_transition import ScreenTransition
 
 PIECE_SPRITE_SIZE = 60
 SQUARE_SIZE = 64
@@ -58,16 +59,16 @@ class Board:
                 )
                 surface.blit(image, real_blit_position)
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> ScreenTransition | None:
         handler = self.handlers.get(event.type)
         if handler is not None:
             return handler(event)
 
-    def handle_mouse_down(self, event):
+    def handle_mouse_down(self, event) -> None:
         self.dragging = True
         self.dragging_from = self.get_hovered_square()
 
-    def handle_mouse_up(self, event):
+    def handle_mouse_up(self, event) -> None:
         if not self.dragging:
             return
 
@@ -92,7 +93,7 @@ class Board:
         elif event.key == ord("n"):
             self.board.new_game()
         elif pygame.K_ESCAPE:
-            return "menu"
+            return ScreenTransition("game", "menu")
 
 
 class PromotionOverlay:
