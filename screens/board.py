@@ -87,13 +87,12 @@ class Board:
         return (position[1] // SQUARE_SIZE, position[0] // SQUARE_SIZE)
 
     def handle_keyboard(self, event):
-        match event.key:
-            case ord("u"):
-                self.board.undo_move()
-            case ord("n"):
-                self.board.new_game()
-            case pygame.K_ESCAPE:
-                return "menu"
+        if event.key == ord("u"):
+            self.board.undo_move()
+        elif event.key == ord("n"):
+            self.board.new_game()
+        elif pygame.K_ESCAPE:
+            return "menu"
 
 
 class PromotionOverlay:
