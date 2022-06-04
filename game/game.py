@@ -1,3 +1,4 @@
+from itertools import product
 from .pieces import *
 from .moves import process_move
 
@@ -25,6 +26,8 @@ class ChessGame:
         self.state = {}
         self.player = Color.WHITE
         self.history = []
+        self.game_over = False
+        self.winner = None
 
         self.piece_dict = {
             "r": Rook,
@@ -81,6 +84,9 @@ class ChessGame:
             move (Movement): Movement to be executed
         """
 
+        if self.game_over:
+            return
+
         # Invalid moves or from the wrong player are not processed
         if not move.is_valid() or move.piece.color != self.player:
             return
@@ -93,7 +99,12 @@ class ChessGame:
         if self.verify_check(king_pos, self.player):
             self.undo_move(swap_player=False)
         else:
+            last_player = self.player
             self._change_player()
+
+            if self.verify_checkmate(self.player):
+                self.winner = last_player
+                self.game_over = True
 
     def undo_move(self, swap_player=True):
         """Undo the last move.
@@ -167,6 +178,35 @@ class ChessGame:
             if move.is_valid():
                 return True
         return False
+
+    def verify_checkmate(self, color):
+        """Verify if the game ended in checkmate
+        
+        Arguments:
+            color (Color): color to check if was checkmated
+        """
+        enemy_color = Color.BLACK if color == Color.WHITE else Color.WHITE
+        checkmate = True
+        for piece_position, piece in self:
+            if piece is None or piece.color == enemy_color:
+                continue
+    
+            for target_position in product(range(8), repeat=2):
+                move = self.process_move(piece_position, target_position)
+                if not move.is_valid():
+                    continue
+                
+                move.do()
+                king_position = self._get_king_position(color)
+                if not self.verify_check(king_position, color):
+                    checkmate = False
+                move.undo()
+
+                if not checkmate:
+                    break
+            if not checkmate:
+                break
+        return checkmate
 
     def _get_king_position(self, player):
         """Return the king position of the requested player
