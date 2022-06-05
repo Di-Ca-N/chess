@@ -25,12 +25,11 @@ class Piece(ABC):
     """
 
     def __init__(
-        self, color: Color, name: str, has_moved: bool = False, notation: str = ""
+        self, color: Color, name: str, has_moved: bool = False
     ):
         self.color = color
         self.name = name
         self.has_moved = has_moved
-        self.notation = notation
 
     def __str__(self):
         return f"{self.color} {self.name}"

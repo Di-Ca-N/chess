@@ -44,13 +44,13 @@ class Movement:
             not self.piece.has_moved if self.piece is not None else True
         )
 
-        self.notation = self.piece.notation
+        #self.notation = self.piece.notation
 
-        if self.capture:
-            self.notation += "x"
-        self.notation += chr(ord("a") + self.to_position[1]) + str(
-            8 - self.to_position[0]
-        )
+        # if self.capture:
+        #     self.notation += "x"
+        # self.notation += chr(ord("a") + self.to_position[1]) + str(
+        #     8 - self.to_position[0]
+        # )
 
     def do(self):
         self.board.move_piece(self.piece, self.from_position, self.to_position)
@@ -154,11 +154,11 @@ class Castling(Movement):
         if king_target_col > king_initial_col:
             rook_initial_row, rook_initial_col = king_target_row, king_target_col + 1
             rook_final_row, rook_final_col = king_target_row, king_target_col - 1
-            self.notation = "O-O"
+            #self.notation = "O-O"
         else:
             rook_initial_row, rook_initial_col = king_target_row, king_target_col - 2
             rook_final_row, rook_final_col = king_target_row, king_target_col + 1
-            self.notation = "O-O-O"
+            #self.notation = "O-O-O"
 
         self.rook = board[rook_initial_row, rook_initial_col]
         self.rook_position = (rook_initial_row, rook_initial_col)

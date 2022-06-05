@@ -8,11 +8,13 @@ class GameOver(Screen):
     def __init__(self, transition: ScreenTransition = None):
         super().__init__()
 
-        display_size = pygame.display.get_surface().get_size()
+        display_surface = pygame.display.get_surface()
+        display_size = display_surface.get_size()
 
         self.overlay = pygame.Surface(display_size)
         self.overlay.set_alpha(64)
         self.overlay.fill((0, 0, 0))
+        display_surface.blit(self.overlay, (0, 0))
 
         self.manager = pygame_gui.UIManager(display_size, "assets/theme.json")
 
@@ -54,8 +56,6 @@ class GameOver(Screen):
                 "right_target": self.new_game_button,
             },
         )
-
-        pygame.display.get_surface().blit(self.overlay, (0, 0))
 
     def draw(self, screen):
         self.manager.update(pygame.time.get_ticks() / 1000)

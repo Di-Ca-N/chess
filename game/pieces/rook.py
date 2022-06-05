@@ -3,7 +3,7 @@ from .piece import Piece
 
 class Rook(Piece):
     def __init__(self, color, has_moved=False):
-        super().__init__(color, "rook", has_moved, "R")
+        super().__init__(color, "rook", has_moved)
 
     def trajectory(self, from_position, to_position, capture=False):
         from_row, from_col = from_position
