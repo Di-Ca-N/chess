@@ -24,9 +24,7 @@ class Piece(ABC):
                         only one letter
     """
 
-    def __init__(
-        self, color: Color, name: str, has_moved: bool = False
-    ):
+    def __init__(self, color: Color, name: str, has_moved: bool = False):
         self.color = color
         self.name = name
         self.has_moved = has_moved
