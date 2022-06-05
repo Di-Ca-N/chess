@@ -1,11 +1,13 @@
 import pygame
 import pygame_gui
 
-from screens.screen_transition import ScreenTransition
+from screens.base import ScreenTransition, Screen
 
 
-class About:
+class About(Screen):
     def __init__(self):
+        super().__init__()
+
         window = pygame.display.get_surface()
 
         self.manager = pygame_gui.UIManager(window.get_size(), "assets/theme.json")
@@ -25,7 +27,7 @@ class About:
             manager=self.manager,
         )
 
-    def update(self, screen):
+    def draw(self, screen):
         self.manager.update(pygame.time.get_ticks() / 1000)
         screen.fill((255, 255, 255))
         self.manager.draw_ui(screen)
@@ -35,7 +37,7 @@ class About:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                return ScreenTransition("about", "menu")
+                self.transition = ScreenTransition("about", "menu")
         elif event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element is self.back_button:
-                return ScreenTransition("about", "menu")
+                self.transition = ScreenTransition("about", "menu")

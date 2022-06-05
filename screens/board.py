@@ -2,21 +2,24 @@ import pygame
 from game import pieces
 from game.moves import Promotion
 
-from .screen_transition import ScreenTransition
+from .base import ScreenTransition, Screen
 
 PIECE_SPRITE_SIZE = 60
 SQUARE_SIZE = 64
 PIECE_OFFSET = (SQUARE_SIZE - PIECE_SPRITE_SIZE) // 2
 
 
-class Board:
+class Board(Screen):
     background = pygame.image.load("./assets/images/chessboard.png")
 
     def __init__(self, game):
+        super().__init__()
+
         self.board = game
 
         self.dragging = False
         self.dragging_from = (None, None)
+        self.exit = False
 
         self.handlers = {
             pygame.MOUSEBUTTONDOWN: self.handle_mouse_down,
@@ -30,7 +33,7 @@ class Board:
             if piece is not None
         }
 
-    def update(self, surface):
+    def draw(self, surface):
         surface.fill((255, 255, 255))
         surface.blit(self.background, (0, 0))
 
@@ -61,14 +64,15 @@ class Board:
 
     def handle_event(self, event) -> ScreenTransition | None:
         handler = self.handlers.get(event.type)
-        if handler is not None:
-            return handler(event)
 
-    def handle_mouse_down(self, event) -> None:
+        if handler is not None:
+            self.transition = handler(event)
+
+    def handle_mouse_down(self, event):
         self.dragging = True
         self.dragging_from = self.get_hovered_square()
 
-    def handle_mouse_up(self, event) -> None:
+    def handle_mouse_up(self, event):
         if not self.dragging:
             return
 
@@ -93,7 +97,15 @@ class Board:
         elif event.key == ord("n"):
             self.board.new_game()
         elif pygame.K_ESCAPE:
+            self.exit = True
+
+    def get_transition(self):
+        if self.board.game_over:
+            return ScreenTransition("game", "game_over", {"winner": self.board.winner})
+        elif self.exit:
             return ScreenTransition("game", "menu")
+        else:
+            return self.transition
 
 
 class PromotionOverlay:

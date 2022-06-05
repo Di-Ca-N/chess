@@ -181,7 +181,7 @@ class ChessGame:
 
     def verify_checkmate(self, color):
         """Verify if the game ended in checkmate
-        
+
         Arguments:
             color (Color): color to check if was checkmated
         """
@@ -190,12 +190,12 @@ class ChessGame:
         for piece_position, piece in self:
             if piece is None or piece.color == enemy_color:
                 continue
-    
+
             for target_position in product(range(8), repeat=2):
                 move = self.process_move(piece_position, target_position)
                 if not move.is_valid():
                     continue
-                
+
                 move.do()
                 king_position = self._get_king_position(color)
                 if not self.verify_check(king_position, color):

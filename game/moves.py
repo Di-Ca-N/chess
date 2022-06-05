@@ -1,7 +1,9 @@
 from . import pieces
 
 
-def process_move(board, piece, from_position, to_position, captured_piece=None) -> 'Movement':
+def process_move(
+    board, piece, from_position, to_position, captured_piece=None
+) -> "Movement":
     """Create a Movement instance with the given information
 
     The type of the movement can vary according to the information provided

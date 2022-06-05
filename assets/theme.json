@@ -8,5 +8,16 @@
             "border_width": "0",
             "shadow_width": "0"
         }
+    },
+    "@overlay_textbox": {
+        "colours": {
+            "dark_bg": "#000000ff",
+            "normal_text": "#ffffff"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "text_horiz_alignment": "center"
+        }
     }
 }
