@@ -55,7 +55,11 @@ class Piece(ABC):
         raise NotImplementedError
 
 
-def diagonal_trajectory(origin, target):
+def diagonal_trajectory(origin: Position, target: Position) -> set:
+    """Return the set of the squares visited when moving between origin
+    and target with a diagonal movement. If no trajectory exists,
+    return an empty set"""
+
     # A diagonal movement happen when the sum or difference of the
     # coordinates of the origin and target position are equal
     from_dif = origin[0] - origin[1]
@@ -81,7 +85,11 @@ def diagonal_trajectory(origin, target):
     return trajectory
 
 
-def straight_trajectory(origin, target):
+def straight_trajectory(origin: Position, target: Position) -> set:
+    """Return the set of the squares visited when moving between origin
+    and target with a movement in straight line. If no trajectory exists,
+    return an empty set"""
+
     from_row, from_col = origin
     to_row, to_col = target
 
