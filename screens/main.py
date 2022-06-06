@@ -19,6 +19,7 @@ class MainUI:
 
         self.transitions = {
             "new_game": self.to_new_game,
+            "game": self.to_game,
             "about": self.to_about,
             "menu": self.to_menu,
             "game_over": self.game_over,
@@ -42,6 +43,9 @@ class MainUI:
 
     def to_new_game(self, transition=None):
         self.game.new_game()
+        self.to_game()
+
+    def to_game(self, transition=None):
         self.active_screen = Board(self.game)
 
     def to_about(self, transition=None):
