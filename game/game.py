@@ -1,6 +1,6 @@
 from itertools import product
 from .pieces import *
-from .moves import process_move
+from .moves import move_factory
 
 
 class ChessGame:
@@ -75,7 +75,7 @@ class ChessGame:
         piece = self.state.get(from_position)
         target_piece = self.state.get(to_position)
 
-        return process_move(self, piece, from_position, to_position, target_piece)
+        return move_factory(self, piece, from_position, to_position, target_piece)
 
     def make_move(self, move):
         """Make a movement, if it is valid

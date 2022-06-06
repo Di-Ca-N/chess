@@ -1,7 +1,7 @@
 from . import pieces
 
 
-def process_move(
+def move_factory(
     board, piece, from_position, to_position, captured_piece=None
 ) -> "Movement":
     """Create a Movement instance with the given information
