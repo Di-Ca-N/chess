@@ -1,9 +1,7 @@
 from . import pieces
 
 
-def move_factory(
-    board, piece, from_position, to_position, captured_piece=None
-) -> "Movement":
+def move_factory(board, piece, origin, target, captured_piece=None) -> "Movement":
     """Create a Movement instance with the given information
 
     The type of the movement can vary according to the information provided
@@ -11,8 +9,8 @@ def move_factory(
     Arguments:
         board (ChessGame): Current state of the game
         piece (Piece): Piece to move
-        from_position (tuple[int, int]): Piece original position
-        to_position (tuple[int, int]): Target position
+        origin (tuple[int, int]): Piece original position
+        target (tuple[int, int]): Target position
         captured_piece (Optional[Piece]): Captured piece (if it exists)
 
     Return:
@@ -21,8 +19,8 @@ def move_factory(
     validation_chain = [EmptyMovement, Castling, EnPassant, Promotion, Movement]
 
     for movement in validation_chain:
-        if movement.pre_condition(piece, from_position, to_position, captured_piece):
-            return movement(board, piece, from_position, to_position, captured_piece)
+        if movement.pre_condition(piece, origin, target, captured_piece):
+            return movement(board, piece, origin, target, captured_piece)
 
 
 class Movement:
@@ -32,11 +30,11 @@ class Movement:
     allowing movements to be done and undone
     """
 
-    def __init__(self, board, piece, from_position, to_position, captured_piece=None):
+    def __init__(self, board, piece, origin, target, captured_piece=None):
         self.board = board
         self.piece = piece
-        self.from_position = from_position
-        self.to_position = to_position
+        self.origin = origin
+        self.target = target
         self.capture = captured_piece is not None
         self.captured_piece = captured_piece
 
@@ -48,18 +46,18 @@ class Movement:
 
         # if self.capture:
         #     self.notation += "x"
-        # self.notation += chr(ord("a") + self.to_position[1]) + str(
-        #     8 - self.to_position[0]
+        # self.notation += chr(ord("a") + self.target[1]) + str(
+        #     8 - self.target[0]
         # )
 
     def do(self):
-        self.board.move_piece(self.piece, self.from_position, self.to_position)
+        self.board.move_piece(self.piece, self.origin, self.target)
 
     def undo(self):
-        self.board.move_piece(self.piece, self.to_position, self.from_position)
+        self.board.move_piece(self.piece, self.target, self.origin)
 
         if self.capture:
-            self.board.place_piece(self.captured_piece, self.to_position)
+            self.board.place_piece(self.captured_piece, self.target)
 
         if self.changes_moved_state:
             self.piece.has_moved = False
@@ -73,9 +71,7 @@ class Movement:
         3. The captured piece (if it exists) is from the opponent
         """
 
-        trajectory = self.piece.trajectory(
-            self.from_position, self.to_position, self.capture
-        )
+        trajectory = self.piece.trajectory(self.origin, self.target, self.capture)
 
         # Check if the piece can reach the target position
         exists_trajectory = True
@@ -91,8 +87,8 @@ class Movement:
             is_initial_position = (
                 intermediate_row,
                 intermediate_col,
-            ) == self.from_position
-            is_final_position = (intermediate_row, intermediate_col) == self.to_position
+            ) == self.origin
+            is_final_position = (intermediate_row, intermediate_col) == self.target
             if piece_exists and not is_final_position and not is_initial_position:
                 movement_not_blocked = False
 
@@ -111,7 +107,7 @@ class Movement:
         )
 
     @staticmethod
-    def pre_condition(piece, from_position, to_position, captured_piece):
+    def pre_condition(piece, origin, target, captured_piece):
         """Test if the given information correspond to this type of movement.
 
         This method is meant to be overwritten by subclasses.
@@ -122,14 +118,14 @@ class Movement:
 class EmptyMovement(Movement):
     """A Movement of an empty piece (None). Is always invalid"""
 
-    def __init__(self, board, piece, from_position, to_position, captured_piece=None):
+    def __init__(self, board, piece, origin, target, captured_piece=None):
         pass
 
     def is_valid(self):
         return False
 
     @staticmethod
-    def pre_condition(piece, from_position, to_position, captured_piece):
+    def pre_condition(piece, origin, target, captured_piece):
         return piece is None
 
 
@@ -218,28 +214,28 @@ class Castling(Movement):
         )
 
     @staticmethod
-    def pre_condition(piece, from_position, to_position, captured_piece) -> bool:
+    def pre_condition(piece, origin, target, captured_piece) -> bool:
         king_move = isinstance(piece, pieces.King)
-        two_squares_to_side = abs(from_position[1] - to_position[1]) == 2
-        on_the_same_row = from_position[0] == to_position[0]
+        two_squares_to_side = abs(origin[1] - target[1]) == 2
+        on_the_same_row = origin[0] == target[0]
         return all([king_move, two_squares_to_side, on_the_same_row])
 
 
 class EnPassant(Movement):
-    def __init__(self, board, piece, from_position, to_position, captured_piece=None):
-        super().__init__(board, piece, from_position, to_position, captured_piece)
+    def __init__(self, board, piece, origin, target, captured_piece=None):
+        super().__init__(board, piece, origin, target, captured_piece)
         self.previous_move = self.board.history[-1] if self.board.history else None
         self.captured_piece = (
             self.previous_move.piece if self.previous_move is not None else None
         )
 
     def do(self):
-        self.board.move_piece(self.piece, self.from_position, self.to_position)
-        self.board.place_piece(None, self.previous_move.to_position)
+        self.board.move_piece(self.piece, self.origin, self.target)
+        self.board.place_piece(None, self.previous_move.target)
 
     def undo(self):
-        self.board.move_piece(self.piece, self.to_position, self.from_position)
-        self.board.place_piece(self.captured_piece, self.previous_move.to_position)
+        self.board.move_piece(self.piece, self.target, self.origin)
+        self.board.place_piece(self.captured_piece, self.previous_move.target)
 
     def is_valid(self):
         if self.captured_piece is None:
@@ -249,17 +245,12 @@ class EnPassant(Movement):
         captured_piece_is_a_pawn = isinstance(self.captured_piece, pieces.Pawn)
         pieces_with_opposite_colors = self.captured_piece.color != self.piece.color
         captured_pawn_moved_two_squares = (
-            abs(self.previous_move.to_position[0] - self.previous_move.from_position[0])
-            == 2
+            abs(self.previous_move.target[0] - self.previous_move.origin[0]) == 2
         )
-        pieces_on_the_same_row = (
-            self.previous_move.to_position[0] == self.from_position[0]
-        )
-        pieces_will_end_on_same_col = (
-            self.to_position[1] == self.previous_move.from_position[1]
-        )
+        pieces_on_the_same_row = self.previous_move.target[0] == self.origin[0]
+        pieces_will_end_on_same_col = self.target[1] == self.previous_move.origin[1]
         pieces_on_adjacent_cols = (
-            abs(self.previous_move.to_position[1] - self.from_position[1]) == 1
+            abs(self.previous_move.target[1] - self.origin[1]) == 1
         )
 
         return all(
@@ -275,13 +266,10 @@ class EnPassant(Movement):
         )
 
     @staticmethod
-    def pre_condition(piece, from_position, to_position, captured_piece):
+    def pre_condition(piece, origin, target, captured_piece):
         return (
             isinstance(piece, pieces.Pawn)
-            and (
-                abs(from_position[0] - to_position[0]) == 1
-                and abs(from_position[1] - to_position[1]) == 1
-            )
+            and (abs(origin[0] - target[0]) == 1 and abs(origin[1] - target[1]) == 1)
             and captured_piece is None
         )
 
@@ -301,16 +289,17 @@ class Promotion(Movement):
     def do(self):
         """Promotes the pawn"""
         super().do()
-        assert (
-            self.promotes_to is not None
-        ), "'promotes_to' must be set before calling 'do()'"
+        if self.promotes_to is None:
+            raise ValueError(
+                "The field 'promotes_to' must be set before calling the method 'do()'"
+            )
         piece = self.promotes_to(color=self.piece.color, has_moved=True)
-        self.board.place_piece(piece, self.to_position)
+        self.board.place_piece(piece, self.target)
 
     @staticmethod
-    def pre_condition(piece, from_position, to_position, captured_piece):
+    def pre_condition(piece, origin, target, captured_piece):
         is_pawn = isinstance(piece, pieces.Pawn)
         last_row = 0 if piece.color == pieces.Color.WHITE else 7
-        going_to_last_row = to_position[0] == last_row
+        going_to_last_row = target[0] == last_row
 
         return is_pawn and going_to_last_row
