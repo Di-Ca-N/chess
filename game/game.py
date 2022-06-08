@@ -1,5 +1,5 @@
 from itertools import product
-from .pieces import *
+from .pieces import King, Knight, Rook, Queen, Bishop, Pawn, Color
 from .moves import move_factory
 
 
@@ -42,9 +42,11 @@ class ChessGame:
         with open(state_file) as state:
             for r, row in enumerate(state):
                 for c, piece_code in enumerate(row):
-                    piece_class = self.piece_dict.get(piece_code.lower())
-                    if piece_class is None:
+                    try:
+                        piece_class = self.piece_dict[piece_code.lower()]
+                    except:
                         continue
+
                     piece_color = Color.WHITE if piece_code.islower() else Color.BLACK
                     piece = piece_class(piece_color)
                     self.state[r, c] = piece_class(piece_color)
@@ -64,18 +66,19 @@ class ChessGame:
             for y in range(8):
                 yield (y, x), self.state.get((y, x))
 
-    def process_move(self, from_position, to_position):
-        """Returns a Movement instance that moves a piece from the first position to the second
+    def process_move(self, origin, target):
+        """Returns a Movement instance that moves a piece from the
+        origin position to the target.
 
         Arguments:
-            from_position (tuple[int, int]): Original piece position
-            to_position (tuple[int, int]): Target piece position
+            origin (tuple[int, int]): Original piece position
+            target (tuple[int, int]): Target piece position
         """
 
-        piece = self.state.get(from_position)
-        target_piece = self.state.get(to_position)
+        piece = self.state.get(origin)
+        target_piece = self.state.get(target)
 
-        return move_factory(self, piece, from_position, to_position, target_piece)
+        return move_factory(self, piece, origin, target, target_piece)
 
     def make_move(self, move):
         """Make a movement, if it is valid
@@ -106,6 +109,16 @@ class ChessGame:
                 self.winner = last_player
                 self.game_over = True
 
+    def _get_king_position(self, player):
+        """Return the king position of the requested player
+
+        Arguments:
+            player (Colors: Color of the king
+        """
+        if player == Color.WHITE:
+            return self.white_king_pos
+        return self.black_king_pos
+
     def undo_move(self, swap_player=True):
         """Undo the last move.
 
@@ -116,11 +129,11 @@ class ChessGame:
                 the movement is undone.
         """
 
-        # Cannot undo moves if the history is empty
-        if not self.history:
+        try:
+            last_move = self.history.pop()
+        except IndexError:
             return
 
-        last_move = self.history.pop()
         last_move.undo()
 
         if swap_player:
@@ -185,35 +198,33 @@ class ChessGame:
         Arguments:
             color (Color): color to check if was checkmated
         """
-        enemy_color = Color.BLACK if color == Color.WHITE else Color.WHITE
-        checkmate = True
-        for piece_position, piece in self:
-            if piece is None or piece.color == enemy_color:
+        allied_pieces = (
+            pos for (pos, piece) in self if piece is not None and piece.color == color
+        )
+
+        for piece_position in allied_pieces:
+            can_avoid_mate = self._can_avoid_mate_moving(piece_position, color)
+            if can_avoid_mate:
+                return False
+        return True
+
+    def _can_avoid_mate_moving(self, origin, color):
+        can_avoid_mate = False
+
+        # Check all valid moves starting in origin
+        for target_position in product(range(8), repeat=2):
+            move = self.process_move(origin, target_position)
+            if not move.is_valid():
                 continue
 
-            for target_position in product(range(8), repeat=2):
-                move = self.process_move(piece_position, target_position)
-                if not move.is_valid():
-                    continue
+            move.do()
+            # Need to get the king position after each move because
+            # the king can also have valid moves
+            king_position = self._get_king_position(color)
+            if not self.verify_check(king_position, color):
+                can_avoid_mate = True
+            move.undo()
 
-                move.do()
-                king_position = self._get_king_position(color)
-                if not self.verify_check(king_position, color):
-                    checkmate = False
-                move.undo()
-
-                if not checkmate:
-                    break
-            if not checkmate:
+            if can_avoid_mate:
                 break
-        return checkmate
-
-    def _get_king_position(self, player):
-        """Return the king position of the requested player
-
-        Arguments:
-            player (Colors): Color of the king
-        """
-        if player == Color.WHITE:
-            return self.white_king_pos
-        return self.black_king_pos
+        return can_avoid_mate

@@ -42,18 +42,14 @@ class Movement:
             not self.piece.has_moved if self.piece is not None else True
         )
 
-        # self.notation = self.piece.notation
-
-        # if self.capture:
-        #     self.notation += "x"
-        # self.notation += chr(ord("a") + self.target[1]) + str(
-        #     8 - self.target[0]
-        # )
-
     def do(self):
+        """Apply the movement to the board"""
+
         self.board.move_piece(self.piece, self.origin, self.target)
 
     def undo(self):
+        """Undo the movement, restoring the board state"""
+
         self.board.move_piece(self.piece, self.target, self.origin)
 
         if self.capture:
@@ -66,45 +62,33 @@ class Movement:
         """Check if the movement is valid.
 
         The following conditions are required:
-        1. The piece can reach the target position from the initial position
-        2. The movement is not blocked by another piece
-        3. The captured piece (if it exists) is from the opponent
+        1. The origin and destination are different
+        2. Exists a trajectory between origin and destination, following the piece movement
+        3. The movement is not blocked by another piece
+        4. If it is a capture, must be of an enemy piece
         """
+        if self.origin == self.target:
+            return False
 
         trajectory = self.piece.trajectory(self.origin, self.target, self.capture)
 
         # Check if the piece can reach the target position
-        exists_trajectory = True
         if not trajectory:
-            exists_trajectory = False
+            return False
 
         # Check if the movement is not blocked
-        movement_not_blocked = True
-        for intermediate_row, intermediate_col in trajectory:
-            intermediary_square = self.board[intermediate_row, intermediate_col]
+        for position in trajectory:
+            if position == self.origin or position == self.target:
+                continue
 
-            piece_exists = intermediary_square is not None
-            is_initial_position = (
-                intermediate_row,
-                intermediate_col,
-            ) == self.origin
-            is_final_position = (intermediate_row, intermediate_col) == self.target
-            if piece_exists and not is_final_position and not is_initial_position:
-                movement_not_blocked = False
+            if self.board[position] is not None:
+                return False
 
-        # Check capture an enemy piece
-        only_capturing_oponnent_piece = (
-            not self.capture or self.piece.color != self.captured_piece.color
-        )
+        # Check if the movement captures an enemy piece
+        if self.capture and self.piece.color == self.captured_piece.color:
+            return False
 
-        return all(
-            [
-                exists_trajectory,
-                movement_not_blocked,
-                len(trajectory) > 1,
-                only_capturing_oponnent_piece,
-            ]
-        )
+        return True
 
     @staticmethod
     def pre_condition(piece, origin, target, captured_piece):
@@ -116,10 +100,7 @@ class Movement:
 
 
 class EmptyMovement(Movement):
-    """A Movement of an empty piece (None). Is always invalid"""
-
-    def __init__(self, board, piece, origin, target, captured_piece=None):
-        pass
+    """A Movement of an empty piece (None). It is always invalid"""
 
     def is_valid(self):
         return False
@@ -134,32 +115,32 @@ class Castling(Movement):
         self,
         board,
         piece,
-        initial_king_position,
-        target_king_position,
+        king_origin,
+        king_target,
         captured_piece=None,
     ):
-        super().__init__(board, piece, initial_king_position, target_king_position)
+        super().__init__(board, piece, king_origin, king_target)
 
-        _, king_initial_col = initial_king_position
-        king_target_row, king_target_col = target_king_position
+        _, king_initial_col = king_origin
+        king_target_row, king_target_col = king_target
 
         self.king = piece
-        self.king_position = initial_king_position
+        self.king_position = king_origin
 
         # Identifying short or long castling
         if king_target_col > king_initial_col:
+            # Short castling
             rook_initial_row, rook_initial_col = king_target_row, king_target_col + 1
             rook_final_row, rook_final_col = king_target_row, king_target_col - 1
-            # self.notation = "O-O"
         else:
+            # Long castling
             rook_initial_row, rook_initial_col = king_target_row, king_target_col - 2
             rook_final_row, rook_final_col = king_target_row, king_target_col + 1
-            # self.notation = "O-O-O"
 
         self.rook = board[rook_initial_row, rook_initial_col]
         self.rook_position = (rook_initial_row, rook_initial_col)
         self.final_rook_position = (rook_final_row, rook_final_col)
-        self.target_king_position = target_king_position
+        self.target_king_position = king_target
 
         # The castling involves a movement from the rook and from the king
         self.moves = [
@@ -179,55 +160,52 @@ class Castling(Movement):
         if self.king is None or self.rook is None:
             return False
 
-        have_same_color = self.king.color == self.rook.color
-        pieces_have_not_moved = not (self.king.has_moved or self.rook.has_moved)
-        are_on_the_same_row = self.king_position[0] == self.rook_position[0]
+        if self.king.color != self.rook.color:
+            return False
 
-        king_start, king_end = self.king_position[1], self.target_king_position[1]
+        if self.king.has_moved or self.rook.has_moved:
+            return False
 
-        if king_start > king_end:
-            king_start, king_end = king_end, king_start
+        if self.king_position[0] != self.rook_position[0]:
+            return False
 
-        king_path_in_check = False
-
-        for col in range(king_start, king_end + 1):
-            if self.board.verify_check((self.king_position[0], col), self.king.color):
-                king_path_in_check = True
-
-        no_pieces_blocking = True
-        total_start, total_end = king_start, self.rook_position[1]
-
+        # No piece between the king and the rook
+        total_start, total_end = self.king_position[1], self.rook_position[1]
         if total_start > total_end:
             total_start, total_end = total_end, total_start
         for col in range(total_start + 1, total_end):
             if self.board[self.king_position[0], col] is not None:
-                no_pieces_blocking = False
+                return False
 
-        return all(
-            [
-                have_same_color,
-                pieces_have_not_moved,
-                are_on_the_same_row,
-                not king_path_in_check,
-                no_pieces_blocking,
-            ]
-        )
+        # The king path is not being attacked by enemy pieces
+        king_start, king_end = self.king_position[1], self.target_king_position[1]
+        if king_start > king_end:
+            king_start, king_end = king_end, king_start
+
+        for col in range(king_start, king_end + 1):
+            king_path_square = (self.king_position[0], col)
+            if self.board.verify_check(king_path_square, self.king.color):
+                return False
+
+        return True
 
     @staticmethod
     def pre_condition(piece, origin, target, captured_piece) -> bool:
         king_move = isinstance(piece, pieces.King)
-        two_squares_to_side = abs(origin[1] - target[1]) == 2
+        move_two_squares = abs(origin[1] - target[1]) == 2
         on_the_same_row = origin[0] == target[0]
-        return all([king_move, two_squares_to_side, on_the_same_row])
+        return all([king_move, move_two_squares, on_the_same_row])
 
 
 class EnPassant(Movement):
     def __init__(self, board, piece, origin, target, captured_piece=None):
         super().__init__(board, piece, origin, target, captured_piece)
-        self.previous_move = self.board.history[-1] if self.board.history else None
-        self.captured_piece = (
-            self.previous_move.piece if self.previous_move is not None else None
-        )
+        try:
+            self.previous_move = self.board.history[-1]
+            self.captured_piece = self.previous_move.piece
+        except IndexError:
+            self.previous_move = None
+            self.captured_piece = None
 
     def do(self):
         self.board.move_piece(self.piece, self.origin, self.target)
@@ -289,12 +267,13 @@ class Promotion(Movement):
     def do(self):
         """Promotes the pawn"""
         super().do()
-        if self.promotes_to is None:
+        try:
+            piece = self.promotes_to(color=self.piece.color, has_moved=True)
+            self.board.place_piece(piece, self.target)
+        except TypeError:
             raise ValueError(
                 "The field 'promotes_to' must be set before calling the method 'do()'"
             )
-        piece = self.promotes_to(color=self.piece.color, has_moved=True)
-        self.board.place_piece(piece, self.target)
 
     @staticmethod
     def pre_condition(piece, origin, target, captured_piece):
