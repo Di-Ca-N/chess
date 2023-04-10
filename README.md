@@ -8,7 +8,7 @@ This project is meant to be an exercise of SOLID and Design Patterns. It is impo
 - **Open Closed Principle**: The architecture aims to be extensible, requiring only to subclass `Piece` or `Movement` to add new funcionality to the game.
 - **Liskov Substitution Principle**: The two class families (pieces and movements) follow consistent interfaces, allowing its subtypes to be interchangeable.
 - **Interface Segregation**: Every class implements and relies on the bare minimum interface requirements, namely the interfaces defined by `Piece` and `Movement` classes.
-- **Dependency Inversion**: All messages exchanges relies on common interfaces of object families, allowing implementations and interfaces to evolve independently. 
+- **Dependency Inversion**: All message exchanges rely on common interfaces of object families, allowing implementations and interfaces to evolve independently. 
 
 ## Running the code
 - You will need to have `python3` and `pip` installed
