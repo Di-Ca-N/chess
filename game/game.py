@@ -1,12 +1,14 @@
 from itertools import product
 from .pieces import King, Knight, Rook, Queen, Bishop, Pawn, Color
 from .moves import move_factory
-
+from .player import Player
 
 class ChessGame:
     """Implements the core logic and interactions of the Chess game"""
 
-    def __init__(self):
+    def __init__(self, id: int, player_white: Player, player_black: Player):
+        self.player_white = player_white
+        self.player_black = player_black
         self.new_game()
 
     def new_game(self, state_file="assets/initial_position.txt"):
